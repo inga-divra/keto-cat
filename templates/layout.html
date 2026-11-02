@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keto-Cat – {% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/main.css">
+</head>
+
+<body>
+  <header>
+    <h1><a href="/">Keto-Cat</a></h1>
+    <nav>
+      <a href="/">Home</a>
+    </nav>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>Keto-Cat – a cozy keto and LCHF recipe café</p>
+  </footer>
+</body>
+
+</html>

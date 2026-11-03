@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ user.username }}{% endblock %}
+
+{% block content %}
+<section class="counter">
+  <h2>{{ user.username }}</h2>
+  {% if session.user_id == user.id %}
+  <p class="speech">Meow! This is your own little corner of the café.</p>
+  {% else %}
+  <p class="speech">Meow! Welcome to {{ user.username }}'s corner of the café.</p>
+  {% endif %}
+
+  <dl class="profile-stats">
+    <dt>Published recipes</dt>
+    <dd>{{ recipe_count }}</dd>
+  </dl>
+
+  <h3>Recipes by {{ user.username }}</h3>
+  {% if recipes %}
+  <ul class="recipe-list">
+    {% for recipe in recipes %}
+    <li>
+      <a href="/recipe/{{ recipe.id }}">{{ recipe.title }}</a>
+      {% if recipe.taste %}
+      <span class="tag tag-{{ recipe.taste|lower }}">{{ recipe.taste }}</span>
+      {% else %}
+      <small>(taste not set)</small>
+      {% endif %}
+      <br><small>{{ recipe.created_at[:10] }}</small>
+    </li>
+    {% endfor %}
+  </ul>
+  {% elif session.user_id == user.id %}
+  <p>Your menu is still empty. Purr... why not <a href="/new_recipe">add your first recipe</a>?</p>
+  {% else %}
+  <p>{{ user.username }} hasn't shared any recipes yet. Maybe something is still in the oven!</p>
+  {% endif %}
+
+  <p><a href="/recipes">Back to recipes</a></p>
+</section>
+{% endblock %}

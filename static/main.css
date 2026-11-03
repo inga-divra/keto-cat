@@ -65,6 +65,10 @@ nav span {
   margin-left: 12px;
 }
 
+nav span a {
+  margin-left: 0;
+}
+
 form.inline {
   display: inline;
   margin-left: 12px;
@@ -398,6 +402,27 @@ fieldset {
 
 fieldset label {
   margin-right: 16px;
+}
+
+/* User profile */
+
+.profile-stats {
+  display: inline-flex;
+  gap: 12px;
+  margin: 0 0 8px;
+  padding: 4px 12px;
+  background: #fff3c4;
+  border: 3px solid #3b2a20;
+}
+
+.profile-stats dt {
+  font-weight: bold;
+}
+
+.profile-stats dd {
+  margin: 0;
+  font-family: "Pixelify Sans", "Courier New", monospace;
+  font-weight: 700;
 }
 
 /* Recipes page: taste filters and search */

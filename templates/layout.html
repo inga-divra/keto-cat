@@ -19,7 +19,7 @@
       <a href="/recipes">Recipes</a>
       {% if session.user_id %}
       <a href="/new_recipe">Add recipe</a>
-      <span>Logged in as {{ session.username }}</span>
+      <span>Logged in as <a href="/user/{{ session.user_id }}">{{ session.username }}</a></span>
       <form action="/logout" method="post" class="inline">
         <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
         <button type="submit">Log out</button>

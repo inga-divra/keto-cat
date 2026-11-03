@@ -124,6 +124,16 @@ def show_recipe(recipe_id):
     taste = get_recipe_taste(recipe_id)
     return render_template("recipe.html", recipe=recipe, taste=taste)
 
+@app.route("/user/<int:user_id>")
+def show_user(user_id):
+    user = users.get_user(user_id)
+    if not user:
+        abort(404)
+    recipe_count = users.get_recipe_count(user_id)
+    user_recipes = users.get_recipes(user_id)
+    return render_template("user.html", user=user, recipe_count=recipe_count,
+                           recipes=user_recipes)
+
 @app.route("/new_recipe", methods=["GET", "POST"])
 def new_recipe():
     require_login()

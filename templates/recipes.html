@@ -46,7 +46,7 @@
       {% else %}
       <small>(taste not set)</small>
       {% endif %}
-      <br><small>by {{ recipe.username }}, {{ recipe.created_at[:10] }}</small>
+      <br><small>by <a href="/user/{{ recipe.user_id }}">{{ recipe.username }}</a>, {{ recipe.created_at[:10] }}</small>
     </li>
     {% endfor %}
   </ul>

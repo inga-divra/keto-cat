@@ -17,12 +17,13 @@ Tässä pääasiallinen tietokohde on resepti ja toissijainen tietokohde on komm
 - Reseptin lisäämisen yhteydessä valitaan maku: makea (Sweet) tai suolainen (Savory). Maut on tallennettu tietokantaan.
 - Reseptilistan voi suodattaa maun perusteella, ja suodatusta voi käyttää yhdessä haun kanssa.
 - Etusivun pikselitaidekissa ehdottaa satunnaisen reseptin käyttäjän valitseman maun perusteella.
+- Jokaisella käyttäjällä on julkinen käyttäjäsivu, joka näyttää käyttäjän julkaisemien reseptien määrän ja listan niistä. Reseptin tekijän nimestä pääsee hänen käyttäjäsivulleen.
 
 ## Suunnitellut ominaisuudet
 
 Nämä ominaisuudet eivät ole vielä valmiita:
 
-- Käyttäjäsivu näyttää, montako reseptiä käyttäjä on lisännyt ja montako kommenttia hän on kirjoittanut, sekä listan käyttäjän lisäämistä resepteistä.
+- Käyttäjäsivu näyttää myös, montako kommenttia käyttäjä on kirjoittanut.
 - Käyttäjä pystyy valitsemaan reseptille maun lisäksi muita luokitteluja, esimerkiksi:
   - Ruokavalio: keto tai LCHF
   - Ateria: aamiainen, pääruoka, välipala tai jälkiruoka
@@ -127,6 +128,6 @@ Juuri luodussa tietokannassa ei ole käyttäjiä eikä reseptejä. Siksi testaus
 
 - Sovellus on vielä kehitysvaiheessa.
 - Reseptikuvia ei vielä voi lisätä.
-- Käyttäjäsivut, kommentit ja arvosanat ovat suunnitteilla.
+- Kommentit ja arvosanat ovat suunnitteilla, joten käyttäjäsivulla ei vielä näy kommenttien määrää.
 - Reseptillä on toistaiseksi vain yksi luokittelu, maku.
 - Reseptilistassa ei ole vielä sivutusta.

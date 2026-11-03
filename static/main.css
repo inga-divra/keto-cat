@@ -29,6 +29,16 @@ h1 a {
   text-decoration: none;
 }
 
+.logo {
+  font-family: "Pixelify Sans", "Courier New", monospace;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 6vw, 2.25rem);
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  margin: 16px 0;
+  text-shadow: 2px 2px 0 #f2b84b;
+}
+
 nav a {
   margin-left: 12px;
 }

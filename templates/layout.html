@@ -16,7 +16,9 @@
     <h1 class="logo"><a href="/">KETO-CAT CAFÉ</a></h1>
     <nav>
       <a href="/">Home</a>
+      <a href="/recipes">Recipes</a>
       {% if session.user_id %}
+      <a href="/new_recipe">Add recipe</a>
       <span>Logged in as {{ session.username }}</span>
       <form action="/logout" method="post" class="inline">
         <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">

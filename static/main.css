@@ -92,3 +92,38 @@ button {
   border: 3px dashed #3b2a20;
   padding: 8px 12px;
 }
+
+textarea {
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 6px;
+  border: 3px solid #3b2a20;
+}
+
+input.wide {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+button.danger {
+  background: #e8836b;
+}
+
+.recipe-list {
+  list-style: square;
+  padding-left: 24px;
+}
+
+.recipe-list li {
+  margin-bottom: 12px;
+}
+
+.recipe-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.actions a {
+  margin-right: 12px;
+}

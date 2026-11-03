@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}Delete recipe{% endblock %}
+
+{% block content %}
+<section class="counter">
+  <h2>Delete recipe</h2>
+  <p class="speech">Are you sure you want to take <strong>{{ recipe.title }}</strong> off the menu? This can't be undone.</p>
+
+  <form action="/delete_recipe/{{ recipe.id }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <button type="submit" class="danger">Yes, delete</button>
+    <a href="/recipe/{{ recipe.id }}">Cancel</a>
+  </form>
+</section>
+{% endblock %}

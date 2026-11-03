@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ recipe.title }}{% endblock %}
+
+{% block content %}
+<section class="counter">
+  <h2>{{ recipe.title }}</h2>
+  <p><small>by {{ recipe.username }}, {{ recipe.created_at[:10] }}</small></p>
+
+  {% if session.user_id == recipe.user_id %}
+  <p class="actions">
+    <a href="/edit_recipe/{{ recipe.id }}">Edit</a>
+    <a href="/delete_recipe/{{ recipe.id }}">Delete</a>
+  </p>
+  {% endif %}
+
+  <h3>Ingredients</h3>
+  <div class="recipe-text">{{ recipe.ingredients }}</div>
+
+  <h3>Instructions</h3>
+  <div class="recipe-text">{{ recipe.instructions }}</div>
+
+  <p><a href="/recipes">Back to recipes</a></p>
+</section>
+{% endblock %}

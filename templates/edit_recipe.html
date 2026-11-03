@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit recipe{% endblock %}
+
+{% block content %}
+<section class="counter">
+  <h2>Edit recipe</h2>
+  <p class="speech">A little tweak to the recipe? Sure thing!</p>
+
+  <form action="/edit_recipe/{{ recipe.id }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <p>
+      <label for="title">Title</label><br>
+      <input type="text" name="title" id="title" class="wide" value="{{ filled.title }}"
+             required maxlength="100">
+    </p>
+    <p>
+      <label for="ingredients">Ingredients</label><br>
+      <textarea name="ingredients" id="ingredients" rows="8" required maxlength="3000">{{ filled.ingredients }}</textarea>
+    </p>
+    <p>
+      <label for="instructions">Instructions</label><br>
+      <textarea name="instructions" id="instructions" rows="10" required maxlength="5000">{{ filled.instructions }}</textarea>
+    </p>
+    <button type="submit">Save changes</button>
+    <a href="/recipe/{{ recipe.id }}">Cancel</a>
+  </form>
+</section>
+{% endblock %}

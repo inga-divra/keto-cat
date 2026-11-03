@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}Recipes{% endblock %}
+
+{% block content %}
+<section class="counter">
+  <h2>Recipes</h2>
+  <p class="speech">Here's today's menu! Everything is baked by our lovely guests.</p>
+
+  {% if recipes %}
+  <ul class="recipe-list">
+    {% for recipe in recipes %}
+    <li>
+      <a href="/recipe/{{ recipe.id }}">{{ recipe.title }}</a>
+      <br><small>by {{ recipe.username }}, {{ recipe.created_at[:10] }}</small>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>The menu is still empty. Meow, maybe you could add the first recipe?</p>
+  {% endif %}
+</section>
+{% endblock %}

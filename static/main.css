@@ -50,3 +50,35 @@ footer {
   margin-top: 32px;
   font-size: 0.85em;
 }
+
+nav span {
+  margin-left: 12px;
+}
+
+form.inline {
+  display: inline;
+  margin-left: 12px;
+}
+
+input {
+  font: inherit;
+  max-width: 100%;
+  padding: 4px 6px;
+  border: 3px solid #3b2a20;
+}
+
+button {
+  font: inherit;
+  background: #f2b84b;
+  color: #3b2a20;
+  border: 3px solid #3b2a20;
+  box-shadow: 3px 3px 0 #3b2a20;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.message {
+  background: #fff3c4;
+  border: 3px dashed #3b2a20;
+  padding: 8px 12px;
+}

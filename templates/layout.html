@@ -13,10 +13,24 @@
     <h1><a href="/">Keto-Cat</a></h1>
     <nav>
       <a href="/">Home</a>
+      {% if session.user_id %}
+      <span>Logged in as {{ session.username }}</span>
+      <form action="/logout" method="post" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        <button type="submit">Log out</button>
+      </form>
+      {% else %}
+      <a href="/register">Register</a>
+      <a href="/login">Log in</a>
+      {% endif %}
     </nav>
   </header>
 
   <main>
+    {% for message in get_flashed_messages() %}
+    <p class="message">{{ message }}</p>
+    {% endfor %}
+
     {% block content %}{% endblock %}
   </main>
 

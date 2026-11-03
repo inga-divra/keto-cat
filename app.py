@@ -59,6 +59,10 @@ def add_csrf_token():
     if "csrf_token" not in session:
         session["csrf_token"] = secrets.token_hex(16)
 
+@app.errorhandler(404)
+def page_not_found(_error):
+    return render_template("404.html"), 404
+
 @app.route("/")
 def index():
     return render_template("index.html")

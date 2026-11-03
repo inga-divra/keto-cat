@@ -77,7 +77,10 @@ input {
   border: 3px solid #3b2a20;
 }
 
-button {
+button,
+.button {
+  display: inline-block;
+  text-decoration: none;
   font: inherit;
   background: #f2b84b;
   color: #3b2a20;
@@ -126,4 +129,200 @@ button.danger {
 
 .actions a {
   margin-right: 12px;
+}
+
+/* 404 page */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.not-found {
+  text-align: center;
+}
+
+.button-large {
+  font-size: 1.15em;
+  padding: 8px 24px;
+}
+
+/* The cat is drawn on a grid of 24 x 15 "pixels"; --p is one pixel. */
+.peeking-cat {
+  --p: 6px;
+  position: relative;
+  width: calc(24 * var(--p));
+  height: calc(14 * var(--p));
+  margin: 8px auto 0;
+}
+
+.peeking-cat span {
+  position: absolute;
+}
+
+.cat-head {
+  left: calc(4 * var(--p));
+  top: calc(4 * var(--p));
+  width: calc(16 * var(--p));
+  height: calc(11 * var(--p));
+  background: #8a3b12;
+}
+
+.cat-ear {
+  top: 0;
+  width: calc(4 * var(--p));
+  height: calc(4 * var(--p));
+  background: #8a3b12;
+  clip-path: polygon(0 0, 25% 0, 25% 25%, 50% 25%, 50% 50%, 75% 50%,
+                     75% 75%, 100% 75%, 100% 100%, 0 100%);
+}
+
+.cat-inner-ear {
+  top: calc(2 * var(--p));
+  width: calc(2 * var(--p));
+  height: calc(2 * var(--p));
+  background: #e8836b;
+  clip-path: polygon(0 0, 50% 0, 50% 50%, 100% 50%, 100% 100%, 0 100%);
+}
+
+.cat-ear-left {
+  left: calc(4 * var(--p));
+}
+
+.cat-ear-right {
+  left: calc(16 * var(--p));
+  transform: scaleX(-1);
+}
+
+.cat-inner-ear-left {
+  left: calc(5 * var(--p));
+}
+
+.cat-inner-ear-right {
+  left: calc(17 * var(--p));
+  transform: scaleX(-1);
+}
+
+.cat-eye {
+  top: calc(7 * var(--p));
+  width: calc(2 * var(--p));
+  height: calc(3 * var(--p));
+  background: #3b2a20;
+}
+
+/* Small highlight in the top-left corner of each eye */
+.cat-eye::after {
+  content: "";
+  position: absolute;
+  width: var(--p);
+  height: var(--p);
+  background: #fffaf1;
+}
+
+.cat-eye-left {
+  left: calc(8 * var(--p));
+}
+
+.cat-eye-right {
+  left: calc(14 * var(--p));
+}
+
+.cat-cheek {
+  top: calc(10 * var(--p));
+  width: calc(2 * var(--p));
+  height: var(--p);
+  background: #e8836b;
+}
+
+.cat-cheek-left {
+  left: calc(5 * var(--p));
+}
+
+.cat-cheek-right {
+  left: calc(17 * var(--p));
+}
+
+.cat-nose {
+  left: calc(11 * var(--p));
+  top: calc(10 * var(--p));
+  width: calc(2 * var(--p));
+  height: var(--p);
+  background: #e8836b;
+}
+
+.cat-mouth {
+  left: calc(10 * var(--p));
+  top: calc(11 * var(--p));
+  width: calc(4 * var(--p));
+  height: var(--p);
+  background: linear-gradient(90deg, #3b2a20 25%, transparent 25% 75%, #3b2a20 75%);
+}
+
+.cat-whiskers {
+  top: calc(9 * var(--p));
+  width: calc(4 * var(--p));
+  height: calc(3 * var(--p));
+  background: linear-gradient(#3b2a20 33.3%, transparent 33.3% 66.6%, #3b2a20 66.6%);
+}
+
+.cat-whiskers-left {
+  left: 0;
+}
+
+.cat-whiskers-right {
+  left: calc(20 * var(--p));
+}
+
+/* The paws are drawn above the sign, so the cat seems to hold on to it. */
+.cat-paw {
+  z-index: 2;
+  top: calc(12 * var(--p));
+  width: calc(3 * var(--p));
+  height: calc(2 * var(--p));
+  background: linear-gradient(90deg, #8a3b12 31%, #3b2a20 31% 36%, #8a3b12 36% 64%,
+                              #3b2a20 64% 69%, #8a3b12 69%);
+  box-shadow: 0 0 0 2px #3b2a20;
+}
+
+.cat-paw-left {
+  left: calc(6 * var(--p));
+}
+
+.cat-paw-right {
+  left: calc(15 * var(--p));
+}
+
+.error-sign {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  margin-top: -6px;
+  padding: 4px 32px;
+  background: #f2b84b;
+  border: 4px solid #3b2a20;
+  box-shadow: 6px 6px 0 #3b2a20;
+}
+
+.error-code {
+  margin: 0;
+  font-family: "Pixelify Sans", "Courier New", monospace;
+  font-weight: 700;
+  font-size: clamp(3.5rem, 16vw, 5.5rem);
+  line-height: 1.1;
+  letter-spacing: 0.1em;
+  text-shadow: 3px 3px 0 #fffaf1;
+}
+
+@media (min-width: 600px) {
+  .peeking-cat {
+    --p: 8px;
+  }
+
+  .error-sign {
+    margin-top: -8px;
+  }
 }

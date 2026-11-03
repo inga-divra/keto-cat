@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block title %}Page not found{% endblock %}
+
+{% block content %}
+<section class="counter not-found">
+  <div class="peeking-cat" aria-hidden="true">
+    <span class="cat-ear cat-ear-left"></span>
+    <span class="cat-ear cat-ear-right"></span>
+    <span class="cat-head"></span>
+    <span class="cat-inner-ear cat-inner-ear-left"></span>
+    <span class="cat-inner-ear cat-inner-ear-right"></span>
+    <span class="cat-eye cat-eye-left"></span>
+    <span class="cat-eye cat-eye-right"></span>
+    <span class="cat-cheek cat-cheek-left"></span>
+    <span class="cat-cheek cat-cheek-right"></span>
+    <span class="cat-nose"></span>
+    <span class="cat-mouth"></span>
+    <span class="cat-whiskers cat-whiskers-left"></span>
+    <span class="cat-whiskers cat-whiskers-right"></span>
+    <span class="cat-paw cat-paw-left"></span>
+    <span class="cat-paw cat-paw-right"></span>
+  </div>
+
+  <div class="error-sign">
+    <h2 class="error-code">404<span class="visually-hidden"> – page not found</span></h2>
+  </div>
+
+  <p class="speech"><strong>Meow... this page wandered off!</strong></p>
+  <p>Looks like this treat isn't on our menu anymore.</p>
+  <p><a href="/" class="button button-large">Back to Home</a></p>
+</section>
+{% endblock %}

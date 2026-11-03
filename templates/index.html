@@ -1,11 +1,46 @@
 {% extends "layout.html" %}
+{% from "cat.html" import pixel_cat %}
 
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<section class="counter">
-  <h2>Welcome to the café!</h2>
-  <p class="speech">Meow! I'm the cashier cat here. What are you craving today – something sweet or something savory?</p>
-  <p>Recipe suggestions are coming soon. The cat is still warming up the oven!</p>
+<section class="counter centered">
+  {{ pixel_cat() }}
+
+  <div class="cat-sign">
+    <h2 class="sign-title">Order here</h2>
+  </div>
+
+  <p class="speech"><strong>Meow! What are you craving today?</strong></p>
+
+  <form action="/" method="get" class="taste-choices">
+    {% for option in tastes %}
+    <button type="submit" name="taste" value="{{ option.value }}"
+            class="choice choice-{{ option.value|lower }}{% if taste and taste.id == option.id %} selected{% endif %}">
+      {{ option.value }}
+    </button>
+    {% endfor %}
+  </form>
+
+  {% if taste %}
+  <div class="suggestion">
+    {% if suggestion %}
+    <p class="speech">Purr... I picked this {{ taste.value|lower }} treat just for you!</p>
+    <h3><a href="/recipe/{{ suggestion.id }}">{{ suggestion.title }}</a></h3>
+    <p><small>by {{ suggestion.username }}</small></p>
+    <p class="suggestion-actions">
+      <a href="/recipe/{{ suggestion.id }}" class="button">View recipe</a>
+      <a href="/?taste={{ taste.value|urlencode }}&amp;previous={{ suggestion.id }}" class="button">Show me another</a>
+    </p>
+    {% else %}
+    <p class="speech">Meow... there are no {{ taste.value|lower }} recipes on the menu yet.</p>
+    {% if session.user_id %}
+    <p><a href="/new_recipe">Bake the first one!</a></p>
+    {% else %}
+    <p><a href="/login">Log in</a> and bake the first one!</p>
+    {% endif %}
+    {% endif %}
+  </div>
+  {% endif %}
 </section>
 {% endblock %}

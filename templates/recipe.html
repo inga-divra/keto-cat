@@ -6,6 +6,7 @@
 <section class="counter">
   <h2>{{ recipe.title }}</h2>
   <p><small>by {{ recipe.username }}, {{ recipe.created_at[:10] }}</small></p>
+  <p>Taste: {% if taste %}<span class="tag">{{ taste.value }}</span>{% else %}not set{% endif %}</p>
 
   {% if session.user_id == recipe.user_id %}
   <p class="actions">

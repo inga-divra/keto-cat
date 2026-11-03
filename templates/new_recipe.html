@@ -14,6 +14,14 @@
       <input type="text" name="title" id="title" class="wide" value="{{ filled.title }}"
              required maxlength="100">
     </p>
+    <fieldset>
+      <legend>Taste</legend>
+      {% for option in tastes %}
+      <input type="radio" name="taste" id="taste{{ option.id }}" value="{{ option.id }}" required
+             {% if filled.taste == option.id|string %}checked{% endif %}>
+      <label for="taste{{ option.id }}">{{ option.value }}</label>
+      {% endfor %}
+    </fieldset>
     <p>
       <label for="ingredients">Ingredients</label><br>
       <textarea name="ingredients" id="ingredients" rows="8" required maxlength="3000">{{ filled.ingredients }}</textarea>

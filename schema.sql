@@ -12,3 +12,16 @@ CREATE TABLE IF NOT EXISTS recipes (
     instructions TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS classes (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    value TEXT NOT NULL,
+    UNIQUE (title, value)
+);
+
+CREATE TABLE IF NOT EXISTS recipe_classes (
+    recipe_id INTEGER NOT NULL REFERENCES recipes(id),
+    class_id INTEGER NOT NULL REFERENCES classes(id),
+    PRIMARY KEY (recipe_id, class_id)
+);

@@ -18,6 +18,8 @@ TITLE_MAX_LENGTH = 100
 INGREDIENTS_MAX_LENGTH = 3000
 INSTRUCTIONS_MAX_LENGTH = 5000
 
+TASTE = "Taste"
+
 def require_login():
     if "user_id" not in session:
         abort(403)
@@ -40,8 +42,15 @@ def read_recipe_form():
     return {
         "title": request.form["title"].strip(),
         "ingredients": request.form["ingredients"].strip(),
-        "instructions": request.form["instructions"].strip()
+        "instructions": request.form["instructions"].strip(),
+        "taste": request.form.get("taste", "")
     }
+
+def get_recipe_taste(recipe_id):
+    for recipe_class in recipes.get_recipe_classes(recipe_id):
+        if recipe_class["title"] == TASTE:
+            return recipe_class
+    return None
 
 def recipe_form_error(filled):
     if not filled["title"] or len(filled["title"]) > TITLE_MAX_LENGTH:
@@ -50,6 +59,10 @@ def recipe_form_error(filled):
         return f"The ingredients must be 1–{INGREDIENTS_MAX_LENGTH} characters long."
     if not filled["instructions"] or len(filled["instructions"]) > INSTRUCTIONS_MAX_LENGTH:
         return f"The instructions must be 1–{INSTRUCTIONS_MAX_LENGTH} characters long."
+
+    taste_ids = [str(taste["id"]) for taste in recipes.get_classes(TASTE)]
+    if filled["taste"] not in taste_ids:
+        return "Please choose a taste for your recipe."
     return None
 
 @app.before_request
@@ -65,7 +78,23 @@ def page_not_found(_error):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    tastes = recipes.get_classes(TASTE)
+    taste_value = request.args.get("taste")
+    if not taste_value:
+        return render_template("index.html", tastes=tastes)
+
+    taste = recipes.get_class(TASTE, taste_value)
+    if not taste:
+        abort(404)
+
+    # Try not to suggest the same recipe twice in a row.
+    previous_id = request.args.get("previous", 0, type=int)
+    suggestion = recipes.get_random_recipe(taste["id"], previous_id)
+    if not suggestion:
+        suggestion = recipes.get_random_recipe(taste["id"])
+
+    return render_template("index.html", tastes=tastes, taste=taste,
+                           suggestion=suggestion)
 
 @app.route("/recipes")
 def show_recipes():
@@ -77,24 +106,27 @@ def show_recipe(recipe_id):
     recipe = recipes.get_recipe(recipe_id)
     if not recipe:
         abort(404)
-    return render_template("recipe.html", recipe=recipe)
+    taste = get_recipe_taste(recipe_id)
+    return render_template("recipe.html", recipe=recipe, taste=taste)
 
 @app.route("/new_recipe", methods=["GET", "POST"])
 def new_recipe():
     require_login()
+    tastes = recipes.get_classes(TASTE)
 
     if request.method == "GET":
-        return render_template("new_recipe.html", filled={})
+        return render_template("new_recipe.html", filled={}, tastes=tastes)
 
     check_csrf()
     filled = read_recipe_form()
     error = recipe_form_error(filled)
     if error:
         flash(error)
-        return render_template("new_recipe.html", filled=filled)
+        return render_template("new_recipe.html", filled=filled, tastes=tastes)
 
     recipe_id = recipes.add_recipe(session["user_id"], filled["title"],
-                                   filled["ingredients"], filled["instructions"])
+                                   filled["ingredients"], filled["instructions"],
+                                   [int(filled["taste"])])
     flash("Purr-fect! Your recipe was added.")
     return redirect(f"/recipe/{recipe_id}")
 
@@ -102,19 +134,26 @@ def new_recipe():
 def edit_recipe(recipe_id):
     require_login()
     recipe = get_own_recipe(recipe_id)
+    tastes = recipes.get_classes(TASTE)
 
     if request.method == "GET":
-        return render_template("edit_recipe.html", recipe=recipe, filled=recipe)
+        filled = dict(recipe)
+        taste = get_recipe_taste(recipe_id)
+        filled["taste"] = str(taste["id"]) if taste else ""
+        return render_template("edit_recipe.html", recipe=recipe, filled=filled,
+                               tastes=tastes)
 
     check_csrf()
     filled = read_recipe_form()
     error = recipe_form_error(filled)
     if error:
         flash(error)
-        return render_template("edit_recipe.html", recipe=recipe, filled=filled)
+        return render_template("edit_recipe.html", recipe=recipe, filled=filled,
+                               tastes=tastes)
 
     recipes.update_recipe(recipe_id, filled["title"],
-                          filled["ingredients"], filled["instructions"])
+                          filled["ingredients"], filled["instructions"],
+                          [int(filled["taste"])])
     flash("Your recipe was updated.")
     return redirect(f"/recipe/{recipe_id}")
 

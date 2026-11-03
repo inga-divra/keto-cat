@@ -131,7 +131,7 @@ button.danger {
   margin-right: 12px;
 }
 
-/* 404 page */
+/* Pixel-art cat mascot and its sign (home page and 404 page) */
 
 .visually-hidden {
   position: absolute;
@@ -142,7 +142,7 @@ button.danger {
   white-space: nowrap;
 }
 
-.not-found {
+.centered {
   text-align: center;
 }
 
@@ -296,7 +296,7 @@ button.danger {
   left: calc(15 * var(--p));
 }
 
-.error-sign {
+.cat-sign {
   position: relative;
   z-index: 1;
   display: inline-block;
@@ -322,7 +322,75 @@ button.danger {
     --p: 8px;
   }
 
-  .error-sign {
+  .cat-sign {
     margin-top: -8px;
   }
+}
+
+/* Home page: sweet / savory suggestion */
+
+.sign-title {
+  margin: 0;
+  font-family: "Pixelify Sans", "Courier New", monospace;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 7vw, 2.25rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-shadow: 2px 2px 0 #fffaf1;
+}
+
+.taste-choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.choice {
+  min-width: 9rem;
+  padding: 12px 24px;
+  font-family: "Pixelify Sans", "Courier New", monospace;
+  font-weight: 700;
+  font-size: 1.5rem;
+  box-shadow: 4px 4px 0 #3b2a20;
+}
+
+.choice-savory {
+  background: #e8836b;
+}
+
+/* The chosen taste looks like a pressed button */
+.choice.selected {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 #3b2a20;
+}
+
+.suggestion {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 3px dashed #3b2a20;
+}
+
+.suggestion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0 8px;
+  background: #f2b84b;
+  border: 2px solid #3b2a20;
+}
+
+fieldset {
+  margin: 0 0 16px;
+  border: 3px solid #3b2a20;
+}
+
+fieldset label {
+  margin-right: 16px;
 }

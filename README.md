@@ -1,5 +1,7 @@
 # Keto-cat
 
+![Keto-Cat Café -sovelluksen 404-sivu: pikselitaidekissa kurkistaa 404-kyltin takaa](docs/images/keto-cat-404.png)
+
 Sovelluksessa käyttäjät pystyvät jakamaan keto- ja LCHF-reseptejään. Reseptissä lukee tarvittavat ainekset ja valmistusohje. Sovelluksen kissa auttaa valitsemaan, mitä tehdä: käyttäjä kertoo, tekeekö mieli suolaista vai makeaa, ja kissa ehdottaa sopivaa reseptiä.
 
 - Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään sovellukseen.

@@ -361,7 +361,8 @@ button.danger {
 }
 
 /* The chosen taste looks like a pressed button */
-.choice.selected {
+.choice.selected,
+.filter.selected {
   transform: translate(3px, 3px);
   box-shadow: 1px 1px 0 #3b2a20;
 }
@@ -386,6 +387,10 @@ button.danger {
   border: 2px solid #3b2a20;
 }
 
+.tag-savory {
+  background: #e8836b;
+}
+
 fieldset {
   margin: 0 0 16px;
   border: 3px solid #3b2a20;
@@ -393,4 +398,39 @@ fieldset {
 
 fieldset label {
   margin-right: 16px;
+}
+
+/* Recipes page: taste filters and search */
+
+.taste-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.filter {
+  font-family: "Pixelify Sans", "Courier New", monospace;
+  font-weight: 700;
+}
+
+.search-form {
+  margin-bottom: 16px;
+}
+
+.search-form label {
+  font-weight: bold;
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 4px;
+}
+
+.search-row input {
+  flex: 1 1 12rem;
+  min-width: 0;
 }

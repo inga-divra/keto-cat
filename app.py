@@ -17,6 +17,7 @@ PASSWORD_MAX_LENGTH = 128
 TITLE_MAX_LENGTH = 100
 INGREDIENTS_MAX_LENGTH = 3000
 INSTRUCTIONS_MAX_LENGTH = 5000
+SEARCH_MAX_LENGTH = 100
 
 TASTE = "Taste"
 
@@ -98,8 +99,22 @@ def index():
 
 @app.route("/recipes")
 def show_recipes():
-    all_recipes = recipes.get_recipes()
-    return render_template("recipes.html", recipes=all_recipes)
+    keyword = request.args.get("q", "").strip()
+    if len(keyword) > SEARCH_MAX_LENGTH:
+        flash(f"The search can be at most {SEARCH_MAX_LENGTH} characters long.")
+        keyword = keyword[:SEARCH_MAX_LENGTH]
+
+    taste = None
+    taste_value = request.args.get("taste")
+    if taste_value:
+        taste = recipes.get_class(TASTE, taste_value)
+        if not taste:
+            abort(404)
+
+    found_recipes = recipes.get_recipes(keyword, taste["id"] if taste else None)
+    return render_template("recipes.html", recipes=found_recipes,
+                           tastes=recipes.get_classes(TASTE),
+                           keyword=keyword, taste=taste)
 
 @app.route("/recipe/<int:recipe_id>")
 def show_recipe(recipe_id):

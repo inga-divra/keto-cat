@@ -30,13 +30,32 @@ def add_recipe(user_id, title, ingredients, instructions, class_ids):
     add_recipe_classes(recipe_id, class_ids)
     return recipe_id
 
-def get_recipes():
+def get_recipes(keyword="", taste_id=None):
+    # Escape LIKE wildcards so that "%" and "_" in the keyword match literally.
+    keyword = keyword.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    like = "%" + keyword + "%"
+
+    # LEFT JOIN keeps recipes that have no taste selected yet.
     sql = """SELECT recipes.id, recipes.title, recipes.created_at,
-                    users.id AS user_id, users.username
-             FROM recipes, users
-             WHERE recipes.user_id = users.id
-             ORDER BY recipes.id DESC"""
-    return db.query(sql)
+                    users.id AS user_id, users.username,
+                    taste.value AS taste
+             FROM recipes
+                  JOIN users ON users.id = recipes.user_id
+                  LEFT JOIN recipe_classes
+                       ON recipe_classes.recipe_id = recipes.id
+                       AND recipe_classes.class_id IN
+                           (SELECT id FROM classes WHERE title = 'Taste')
+                  LEFT JOIN classes AS taste ON taste.id = recipe_classes.class_id
+             WHERE (recipes.title LIKE ? ESCAPE '\\'
+                    OR recipes.ingredients LIKE ? ESCAPE '\\')"""
+    params = [like, like]
+
+    if taste_id:
+        sql += " AND taste.id = ?"
+        params.append(taste_id)
+
+    sql += " ORDER BY recipes.id DESC"
+    return db.query(sql, params)
 
 def get_recipe(recipe_id):
     sql = """SELECT recipes.id, recipes.title, recipes.ingredients,

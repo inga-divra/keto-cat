@@ -16,6 +16,7 @@ Tässä pääasiallinen tietokohde on resepti ja toissijainen tietokohde on komm
 - Käyttäjä pystyy etsimään reseptejä hakusanalla. Haku kohdistuu reseptin nimeen ja aineksiin.
 - Reseptilistan voi suodattaa maun perusteella, ja suodatusta voi käyttää yhdessä haun kanssa.
 - Etusivun pikselitaidekissa ehdottaa satunnaisen reseptin käyttäjän valitseman maun perusteella.
+- Reseptilista on sivutettu: sivulla näytetään 10 reseptiä. Sivutus toimii myös haun ja maun suodatuksen kanssa.
 
 ### Reseptien luokittelut
 
@@ -45,7 +46,6 @@ Vapaaehtoisia luokitteluja voi muuttaa tai poistaa reseptiä muokattaessa. Maku 
 
 Nämä ominaisuudet eivät ole vielä valmiita:
 
-- Reseptilistan sivutus.
 - Reseptilistan suodatus ruokavalion, aterian ja erityisruokavalion perusteella.
 - Reseptikuvat.
 
@@ -150,9 +150,78 @@ Juuri luodussa tietokannassa ei ole käyttäjiä eikä reseptejä. Siksi testaus
 14. Kirjaudu ulos ja kirjaudu sisään ensimmäisellä tunnuksella. Toisen käyttäjän arviossa ei ole muokkaus- ja poistolinkkejä. Jos kirjoitat osoiteriville suoraan kohdassa 12 muistiin kirjoitetun osoitteen `/edit_comment/<id>` tai `/delete_comment/<id>`, sovellus palauttaa virheen 403 (Forbidden).
 15. Kirjaudu ulos painikkeella **Log out** ja avaa resepti kirjautumattomana. Arviot, keskiarvo ja käyttäjäsivut näkyvät, ja arviolomakkeen tilalla on linkki **Log in**.
 
+## Suorituskyvyn testaus
+
+### Testitietokanta
+
+Suurta tietomäärää varten skripti `seed.py` luo erillisen testitietokannan tiedostojen `schema.sql` ja `init.sql` perusteella:
+
+```
+python seed.py --database test-data/large.db
+```
+
+Oletuksena tietokantaan tulee 100 käyttäjää, 10 000 reseptiä, 31 743 reseptin luokittelua ja 20 000 arviota. Satunnaisluvut tulevat kiinteästä siemenestä (`--seed 2026`), joten sama komento tuottaa aina samat tiedot. Määriä voi muuttaa valitsimilla `--users`, `--recipes` ja `--reviews`. Kaikkien testikäyttäjien (`user0001`–`user0100`) salasana on `seedpassword`.
+
+Skripti ei koskaan käytä tiedostoa `database.db`. Se ei myöskään korvaa olemassa olevaa testitietokantaa ilman valitsinta `--overwrite`. Testitietokantoja ei lisätä versionhallintaan.
+
+Suurella tietokannalla tarkistettiin, että sivutus (1 000 sivua), haku, maun suodatus, käyttäjäsivut, arviot ja kirjautuminen toimivat ja että `PRAGMA integrity_check` ja `PRAGMA foreign_key_check` eivät löydä virheitä.
+
+### Indeksin vaikutus
+
+Testattu sivu on käyttäjäsivu `/user/<id>`. Sivu laskee käyttäjän reseptit (`users.get_recipe_count`) ja listaa ne (`users.get_recipes`). Ilman indeksiä SQLite käy molemmissa kyselyissä läpi koko `recipes`-taulun (`SCAN recipes`). Indeksin kanssa se hakee vain kyseisen käyttäjän reseptit (`SEARCH recipes USING INDEX idx_recipes_user (user_id=?)`).
+
+Lisätty indeksi (`schema.sql`):
+
+```
+CREATE INDEX IF NOT EXISTS idx_recipes_user ON recipes (user_id);
+```
+
+Mittaustapa:
+
+- Tietokannasta tehtiin samanlaiset kopiot, joista vain yhdessä oli indeksi `idx_recipes_user`. Samoilla kierroksilla mitattiin myös kaksi muuta kokeiltua indeksiä (alla).
+- Jokaisella kierroksella haettiin kaikkien 100 käyttäjän sivut vuorotellen kummastakin kopiosta. Kaksi ensimmäistä kierrosta olivat lämmittelyä, ja niiden jälkeen mitattiin 15 kierrosta eli 1 500 sivunlatausta kummastakin kopiosta.
+- Aika mitattiin funktiolla `time.perf_counter()`, ja taulukossa on mittausten mediaani.
+- Sivun aika mitattiin Flaskin testiasiakkaalla. Se sisältää Flaskin käsittelyn, tietokantakyselyt ja HTML-sivun muodostamisen, mutta ei verkkoliikennettä.
+- Lisäksi mitattiin pelkät SQL-kyselyt samalla tavalla avoimen tietokantayhteyden kautta.
+- Ympäristö: Windows 11, Python 3.13.7, SQLite 3.50.4.
+
+| Mitattu | Ilman indeksiä | Indeksin kanssa | Nopeutus |
+|---|---|---|---|
+| Sivu `/user/<id>` | 12,75 ms | 5,51 ms | 2,3-kertainen |
+| Kysely `users.get_recipe_count` | 2,754 ms | 0,065 ms | 42-kertainen |
+| Kysely `users.get_recipes` | 3,526 ms | 0,546 ms | 6,5-kertainen |
+
+Mittaus toistettiin kahdesti, ja tulokset olivat lähes samat (sivu ensimmäisellä kerralla 12,96 ms ja 5,54 ms).
+
+Mittauksen voi toistaa skriptillä `benchmark.py`. Skripti kopioi annetun testitietokannan kahdeksi väliaikaiseksi kopioksi, joista toisessa ei ole indeksiä ja toisessa on, eikä muuta alkuperäistä tiedostoa. Se tulostaa tietokannan rivimäärät, kyselysuunnitelmat (`EXPLAIN QUERY PLAN`) ja mediaaniajat:
+
+```
+python seed.py --database test-data/large.db
+python benchmark.py --database test-data/large.db
+```
+
+Absoluuttiset ajat riippuvat koneesta ja sen tilasta, mutta suhde pysyy samana. Kun `benchmark.py` ajettiin samalla koneella akkuvirralla, sivun mediaani oli 18,6–21,6 ms ilman indeksiä ja 8,6–10,2 ms indeksin kanssa (2,1–2,2-kertainen nopeutus). Myös alkuperäinen mittausskripti antoi samaan aikaan vastaavasti hitaampia aikoja (18,8 ms ilman indeksiä).
+
+Myös indeksiä `comments (user_id)` kokeiltiin. Se nopeutti käyttäjän kommenttien laskemista (0,711 ms → 0,069 ms), mutta koko käyttäjäsivu nopeutui vain noin 1,1-kertaisesti, joten sitä ei lisätty. Indeksi `recipe_classes (class_id)` ei muuttanut reseptilistan kyselysuunnitelmaa eikä nopeuttanut kissan satunnaista ehdotusta, joten sitäkään ei lisätty.
+
+### Jäljelle jäävät hitaat kohdat
+
+Mitattu suurella tietokannalla indeksin kanssa, sivunlatauksen mediaani 100 mittauksesta:
+
+| Sivu | Aika |
+|---|---|
+| `/recipes` (sivu 1) | 12,57 ms |
+| `/recipes?page=1000` (viimeinen sivu) | 22,28 ms |
+| `/recipes?q=chocolate` | 10,26 ms |
+| `/?taste=Sweet` (kissan ehdotus) | 7,78 ms |
+
+- Haku `LIKE '%sana%'` ei voi käyttää tavallista indeksiä, joten SQLite käy läpi kaikki reseptit.
+- Reseptien määrän laskeminen (`COUNT(*)`) käy läpi kaikki hakuehtoon sopivat reseptit jokaisella sivulla.
+- Kaukaiset sivut ovat hitaampia, koska `OFFSET` ohittaa edelliset rivit yksitellen.
+- Kissan ehdotus (`ORDER BY RANDOM()`) järjestää kaikki valitun maun reseptit.
+
 ## Nykyiset rajoitukset
 
 - Sovellus on vielä kehitysvaiheessa.
 - Reseptikuvia ei vielä voi lisätä.
-- Reseptilistassa ei ole vielä sivutusta.
 - Reseptilistan voi suodattaa vain maun perusteella. Muut luokittelut näkyvät reseptin sivulla, mutta niillä ei voi vielä suodattaa.

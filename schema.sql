@@ -38,3 +38,7 @@ CREATE TABLE IF NOT EXISTS comments (
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (recipe_id, user_id)
 );
+
+-- Speeds up the user profile page: counting and listing one user's recipes
+-- (users.get_recipe_count and users.get_recipes). Measured results are in README.md.
+CREATE INDEX IF NOT EXISTS idx_recipes_user ON recipes (user_id);

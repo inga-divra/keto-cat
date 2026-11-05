@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="420" viewBox="0 0 800 420"
+     role="img" aria-labelledby="chart-title chart-desc">
+  <title id="chart-title">Keto-Cat Café database performance</title>
+  <desc id="chart-desc">Median processing time of the user profile page in the Flask test client: 12.75 ms without the SQLite index idx_recipes_user and 5.51 ms with it, about 2.3 times faster. Test database: 100 users, 10,000 recipes and 20,000 reviews.</desc>
+
+  <rect width="800" height="420" fill="#f6ead7"/>
+
+  <!-- Café counter panel with a hard pixel shadow -->
+  <rect x="24" y="24" width="752" height="372" fill="#3b2a20"/>
+  <rect x="16" y="16" width="752" height="372" fill="#fffaf1" stroke="#3b2a20" stroke-width="4"/>
+
+  <g font-family="'Courier New', Courier, monospace" fill="#3b2a20">
+    <text x="44" y="62" font-size="24" font-weight="bold">KETO-CAT CAFÉ · DATABASE PERFORMANCE</text>
+    <text x="44" y="92" font-size="15">User profile page · 100 users · 10,000 recipes · 20,000 reviews</text>
+
+    <!-- Bars: zero-based scale, 680 px = 12.75 ms -->
+    <text x="44" y="140" font-size="18" font-weight="bold">Without index</text>
+    <text x="724" y="140" font-size="18" font-weight="bold" text-anchor="end">12.75 ms</text>
+    <rect x="44" y="150" width="680" height="34" fill="#e8836b" stroke="#3b2a20" stroke-width="3"/>
+
+    <text x="44" y="222" font-size="18" font-weight="bold">With index idx_recipes_user</text>
+    <text x="724" y="222" font-size="18" font-weight="bold" text-anchor="end">5.51 ms</text>
+    <rect x="44" y="232" width="680" height="34" fill="#f6ead7" stroke="#3b2a20" stroke-width="3"/>
+    <rect x="44" y="232" width="293.9" height="34" fill="#f2b84b" stroke="#3b2a20" stroke-width="3"/>
+
+    <!-- Scale -->
+    <g stroke="#3b2a20" stroke-width="2">
+      <line x1="44" y1="282" x2="724" y2="282"/>
+      <line x1="44" y1="282" x2="44" y2="290"/>
+      <line x1="150.7" y1="282" x2="150.7" y2="290"/>
+      <line x1="257.3" y1="282" x2="257.3" y2="290"/>
+      <line x1="364" y1="282" x2="364" y2="290"/>
+      <line x1="470.7" y1="282" x2="470.7" y2="290"/>
+      <line x1="577.3" y1="282" x2="577.3" y2="290"/>
+      <line x1="684" y1="282" x2="684" y2="290"/>
+    </g>
+    <g font-size="13" text-anchor="middle">
+      <text x="44" y="306">0</text>
+      <text x="150.7" y="306">2</text>
+      <text x="257.3" y="306">4</text>
+      <text x="364" y="306">6</text>
+      <text x="470.7" y="306">8</text>
+      <text x="577.3" y="306">10</text>
+      <text x="684" y="306">12 ms</text>
+    </g>
+
+    <text x="392" y="342" font-size="21" font-weight="bold" text-anchor="middle">≈ 2.3× faster with the SQLite index!</text>
+    <text x="392" y="370" font-size="13" text-anchor="middle">Median Flask test-client times; network latency excluded.</text>
+  </g>
+
+  <!-- Pixel-art cat, drawn on a 24 x 15 grid of 4 px "pixels" -->
+  <g transform="translate(664 22) scale(4)" shape-rendering="crispEdges">
+    <polygon points="4,0 5,0 5,1 6,1 6,2 7,2 7,3 8,3 8,4 4,4" fill="#8a3b12"/>
+    <polygon points="20,0 19,0 19,1 18,1 18,2 17,2 17,3 16,3 16,4 20,4" fill="#8a3b12"/>
+    <polygon points="5,2 6,2 6,3 7,3 7,4 5,4" fill="#e8836b"/>
+    <polygon points="19,2 18,2 18,3 17,3 17,4 19,4" fill="#e8836b"/>
+    <rect x="4" y="4" width="16" height="11" fill="#8a3b12"/>
+    <rect x="8" y="7" width="2" height="3" fill="#3b2a20"/>
+    <rect x="14" y="7" width="2" height="3" fill="#3b2a20"/>
+    <rect x="8" y="7" width="1" height="1" fill="#fffaf1"/>
+    <rect x="14" y="7" width="1" height="1" fill="#fffaf1"/>
+    <rect x="5" y="10" width="2" height="1" fill="#e8836b"/>
+    <rect x="17" y="10" width="2" height="1" fill="#e8836b"/>
+    <rect x="11" y="10" width="2" height="1" fill="#e8836b"/>
+    <rect x="10" y="11" width="1" height="1" fill="#3b2a20"/>
+    <rect x="13" y="11" width="1" height="1" fill="#3b2a20"/>
+    <rect x="0" y="9" width="4" height="1" fill="#3b2a20"/>
+    <rect x="0" y="11" width="4" height="1" fill="#3b2a20"/>
+    <rect x="20" y="9" width="4" height="1" fill="#3b2a20"/>
+    <rect x="20" y="11" width="4" height="1" fill="#3b2a20"/>
+  </g>
+</svg>

@@ -191,6 +191,10 @@ Mittaustapa:
 | Kysely `users.get_recipe_count` | 2,754 ms | 0,065 ms | 42-kertainen |
 | Kysely `users.get_recipes` | 3,526 ms | 0,546 ms | 6,5-kertainen |
 
+![Käyttäjäsivun latausajan vertailu: ilman indeksiä 12,75 ms ja indeksin kanssa 5,51 ms, noin 2,3 kertaa nopeampi](docs/images/sqlite-performance.svg)
+
+Kaavio näyttää taulukon alkuperäiset mittaustulokset koko käyttäjäsivulle. Toistetuissa mittauksissa absoluuttiset ajat voivat olla erilaiset (katso alla).
+
 Mittaus toistettiin kahdesti, ja tulokset olivat lähes samat (sivu ensimmäisellä kerralla 12,96 ms ja 5,54 ms).
 
 Mittauksen voi toistaa skriptillä `benchmark.py`. Skripti kopioi annetun testitietokannan kahdeksi väliaikaiseksi kopioksi, joista toisessa ei ole indeksiä ja toisessa on, eikä muuta alkuperäistä tiedostoa. Se tulostaa tietokannan rivimäärät, kyselysuunnitelmat (`EXPLAIN QUERY PLAN`) ja mediaaniajat:

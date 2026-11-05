@@ -7,7 +7,20 @@
 <section class="counter">
   <h2>{{ recipe.title }}</h2>
   <p><small>by <a href="/user/{{ recipe.user_id }}">{{ recipe.username }}</a>, {{ recipe.created_at[:10] }}</small></p>
-  <p>Taste: {% if taste %}<span class="tag tag-{{ taste.value|lower }}">{{ taste.value }}</span>{% else %}not set{% endif %}</p>
+  <dl class="recipe-classes">
+    {% for title, values in classes.items() %}
+    <div>
+      <dt>{{ title }}</dt>
+      <dd>
+        {% for recipe_class in values %}
+        <span class="tag tag-{{ recipe_class.value|lower if title == 'Taste' else title|lower }}">{{ recipe_class.value }}</span>
+        {% else %}
+        <small>not specified</small>
+        {% endfor %}
+      </dd>
+    </div>
+    {% endfor %}
+  </dl>
 
   {% if session.user_id == recipe.user_id %}
   <p class="actions">

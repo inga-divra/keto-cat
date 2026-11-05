@@ -1,0 +1,34 @@
+{# Classification fields of the new and edit recipe forms. #}
+
+{% macro class_fields(class_groups, filled) %}
+{% for group in class_groups %}
+{% set name = group.title|lower %}
+{% set selected = filled.classes[group.title] %}
+<fieldset class="class-group">
+  <legend>
+    {{ group.title }}
+    {% if group.multiple %}<small>(choose any)</small>
+    {% elif not group.required %}<small>(optional)</small>{% endif %}
+  </legend>
+  {% if not group.multiple and not group.required %}
+  <span class="option">
+    <input type="radio" name="{{ name }}" id="{{ name }}-none" value=""
+           {% if not selected %}checked{% endif %}>
+    <label for="{{ name }}-none">Not specified</label>
+  </span>
+  {% endif %}
+  {% for option in group.options %}
+  <span class="option">
+    <input type="{{ 'checkbox' if group.multiple else 'radio' }}" name="{{ name }}"
+           id="class{{ option.id }}" value="{{ option.id }}"
+           {% if group.required %}required{% endif %}
+           {% if option.id|string in selected %}checked{% endif %}>
+    <label for="class{{ option.id }}">{{ option.value }}</label>
+  </span>
+  {% endfor %}
+  {% if group.multiple %}
+  <br><small>Tick only what you have checked yourself.</small>
+  {% endif %}
+</fieldset>
+{% endfor %}
+{% endmacro %}

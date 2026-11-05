@@ -17,17 +17,29 @@ def get_recipe_classes(recipe_id):
              ORDER BY classes.id"""
     return db.query(sql, [recipe_id])
 
-def add_recipe_classes(recipe_id, class_ids):
+def get_all_classes():
+    sql = "SELECT id, title, value FROM classes ORDER BY id"
+    return db.query(sql)
+
+# A recipe and its classes are saved with one connection and one commit:
+# if any statement fails, the connection is closed without commit and
+# nothing is saved, so a recipe cannot be left with half of its classes.
+
+def add_recipe_classes(con, recipe_id, class_ids):
     sql = "INSERT INTO recipe_classes (recipe_id, class_id) VALUES (?, ?)"
     for class_id in class_ids:
-        db.execute(sql, [recipe_id, class_id])
+        con.execute(sql, [recipe_id, class_id])
 
 def add_recipe(user_id, title, ingredients, instructions, class_ids):
-    sql = """INSERT INTO recipes (user_id, title, ingredients, instructions)
-             VALUES (?, ?, ?, ?)"""
-    db.execute(sql, [user_id, title, ingredients, instructions])
-    recipe_id = db.last_insert_id()
-    add_recipe_classes(recipe_id, class_ids)
+    con = db.get_connection()
+    try:
+        sql = """INSERT INTO recipes (user_id, title, ingredients, instructions)
+                 VALUES (?, ?, ?, ?)"""
+        recipe_id = con.execute(sql, [user_id, title, ingredients, instructions]).lastrowid
+        add_recipe_classes(con, recipe_id, class_ids)
+        con.commit()
+    finally:
+        con.close()
     return recipe_id
 
 def get_recipes(keyword="", taste_id=None):
@@ -79,23 +91,28 @@ def get_random_recipe(class_id, exclude_id=0):
     return result[0] if result else None
 
 def update_recipe(recipe_id, title, ingredients, instructions, class_ids):
-    sql = """UPDATE recipes SET title = ?, ingredients = ?, instructions = ?
-             WHERE id = ?"""
-    db.execute(sql, [title, ingredients, instructions, recipe_id])
-
-    sql = "DELETE FROM recipe_classes WHERE recipe_id = ?"
-    db.execute(sql, [recipe_id])
-    add_recipe_classes(recipe_id, class_ids)
+    con = db.get_connection()
+    try:
+        sql = """UPDATE recipes SET title = ?, ingredients = ?, instructions = ?
+                 WHERE id = ?"""
+        con.execute(sql, [title, ingredients, instructions, recipe_id])
+        con.execute("DELETE FROM recipe_classes WHERE recipe_id = ?", [recipe_id])
+        add_recipe_classes(con, recipe_id, class_ids)
+        con.commit()
+    finally:
+        con.close()
 
 def remove_recipe(recipe_id):
     # The reviews are removed too: explicitly here, and by ON DELETE CASCADE
     # in schema.sql as a safety net.
-    sql = "DELETE FROM comments WHERE recipe_id = ?"
-    db.execute(sql, [recipe_id])
-    sql = "DELETE FROM recipe_classes WHERE recipe_id = ?"
-    db.execute(sql, [recipe_id])
-    sql = "DELETE FROM recipes WHERE id = ?"
-    db.execute(sql, [recipe_id])
+    con = db.get_connection()
+    try:
+        con.execute("DELETE FROM comments WHERE recipe_id = ?", [recipe_id])
+        con.execute("DELETE FROM recipe_classes WHERE recipe_id = ?", [recipe_id])
+        con.execute("DELETE FROM recipes WHERE id = ?", [recipe_id])
+        con.commit()
+    finally:
+        con.close()
 
 def get_comments(recipe_id):
     sql = """SELECT comments.id, comments.content, comments.rating,

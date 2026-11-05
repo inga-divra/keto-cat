@@ -23,6 +23,15 @@ RATINGS = ["1", "2", "3", "4", "5"]
 
 TASTE = "Taste"
 
+# Classification groups in the order they are shown. The options of each
+# group come from the classes table. (title, several values allowed, required)
+CLASS_GROUPS = [
+    ("Taste", False, True),
+    ("Diet", False, False),
+    ("Meal", False, False),
+    ("Restrictions", True, False),
+]
+
 def require_login():
     if "user_id" not in session:
         abort(403)
@@ -41,21 +50,41 @@ def get_own_recipe(recipe_id):
         abort(403)
     return recipe
 
+def get_class_groups():
+    options = {}
+    for option in recipes.get_all_classes():
+        options.setdefault(option["title"], []).append(option)
+    return [{"title": title, "multiple": multiple, "required": required,
+             "options": options.get(title, [])}
+            for title, multiple, required in CLASS_GROUPS]
+
+def empty_classes():
+    return {title: [] for title, _, _ in CLASS_GROUPS}
+
+def group_recipe_classes(recipe_id):
+    groups = empty_classes()
+    for recipe_class in recipes.get_recipe_classes(recipe_id):
+        if recipe_class["title"] in groups:
+            groups[recipe_class["title"]].append(recipe_class)
+    return groups
+
 def read_recipe_form():
+    classes = {}
+    for title, _, _ in CLASS_GROUPS:
+        # dict.fromkeys drops repeated values, "" means "not specified".
+        values = request.form.getlist(title.lower())
+        classes[title] = [value for value in dict.fromkeys(values) if value]
     return {
         "title": request.form["title"].strip(),
         "ingredients": request.form["ingredients"].strip(),
         "instructions": request.form["instructions"].strip(),
-        "taste": request.form.get("taste", "")
+        "classes": classes
     }
 
-def get_recipe_taste(recipe_id):
-    for recipe_class in recipes.get_recipe_classes(recipe_id):
-        if recipe_class["title"] == TASTE:
-            return recipe_class
-    return None
+def selected_class_ids(filled):
+    return [int(value) for values in filled["classes"].values() for value in values]
 
-def recipe_form_error(filled):
+def recipe_form_error(filled, class_groups):
     if not filled["title"] or len(filled["title"]) > TITLE_MAX_LENGTH:
         return f"The title must be 1–{TITLE_MAX_LENGTH} characters long."
     if not filled["ingredients"] or len(filled["ingredients"]) > INGREDIENTS_MAX_LENGTH:
@@ -63,9 +92,18 @@ def recipe_form_error(filled):
     if not filled["instructions"] or len(filled["instructions"]) > INSTRUCTIONS_MAX_LENGTH:
         return f"The instructions must be 1–{INSTRUCTIONS_MAX_LENGTH} characters long."
 
-    taste_ids = [str(taste["id"]) for taste in recipes.get_classes(TASTE)]
-    if filled["taste"] not in taste_ids:
-        return "Please choose a taste for your recipe."
+    # Every value must be an option of its own group, so a forged form
+    # cannot save an unknown class or a class of another group.
+    for group in class_groups:
+        values = filled["classes"][group["title"]]
+        option_ids = [str(option["id"]) for option in group["options"]]
+        name = group["title"].lower()
+        if any(value not in option_ids for value in values):
+            return f"Please choose a valid {name} option."
+        if len(values) > 1 and not group["multiple"]:
+            return f"Please choose only one {name} option."
+        if group["required"] and not values:
+            return f"Please choose a {name} for your recipe."
     return None
 
 def get_own_comment(comment_id):
@@ -96,7 +134,7 @@ def render_recipe_page(recipe, filled=None, error=None):
     can_review = (user_id is not None and user_id != recipe["user_id"]
                   and not recipes.has_comment(recipe_id, user_id))
     return render_template("recipe.html", recipe=recipe,
-                           taste=get_recipe_taste(recipe_id),
+                           classes=group_recipe_classes(recipe_id),
                            comments=recipes.get_comments(recipe_id),
                            rating=recipes.get_rating(recipe_id),
                            can_review=can_review, filled=filled or {}, error=error)
@@ -172,21 +210,23 @@ def show_user(user_id):
 @app.route("/new_recipe", methods=["GET", "POST"])
 def new_recipe():
     require_login()
-    tastes = recipes.get_classes(TASTE)
+    class_groups = get_class_groups()
 
     if request.method == "GET":
-        return render_template("new_recipe.html", filled={}, tastes=tastes)
+        return render_template("new_recipe.html", filled={"classes": empty_classes()},
+                               class_groups=class_groups)
 
     check_csrf()
     filled = read_recipe_form()
-    error = recipe_form_error(filled)
+    error = recipe_form_error(filled, class_groups)
     if error:
         flash(error)
-        return render_template("new_recipe.html", filled=filled, tastes=tastes)
+        return render_template("new_recipe.html", filled=filled,
+                               class_groups=class_groups)
 
     recipe_id = recipes.add_recipe(session["user_id"], filled["title"],
                                    filled["ingredients"], filled["instructions"],
-                                   [int(filled["taste"])])
+                                   selected_class_ids(filled))
     flash("Purr-fect! Your recipe was added.")
     return redirect(f"/recipe/{recipe_id}")
 
@@ -194,26 +234,26 @@ def new_recipe():
 def edit_recipe(recipe_id):
     require_login()
     recipe = get_own_recipe(recipe_id)
-    tastes = recipes.get_classes(TASTE)
+    class_groups = get_class_groups()
 
     if request.method == "GET":
         filled = dict(recipe)
-        taste = get_recipe_taste(recipe_id)
-        filled["taste"] = str(taste["id"]) if taste else ""
+        filled["classes"] = {title: [str(recipe_class["id"]) for recipe_class in values]
+                             for title, values in group_recipe_classes(recipe_id).items()}
         return render_template("edit_recipe.html", recipe=recipe, filled=filled,
-                               tastes=tastes)
+                               class_groups=class_groups)
 
     check_csrf()
     filled = read_recipe_form()
-    error = recipe_form_error(filled)
+    error = recipe_form_error(filled, class_groups)
     if error:
         flash(error)
         return render_template("edit_recipe.html", recipe=recipe, filled=filled,
-                               tastes=tastes)
+                               class_groups=class_groups)
 
     recipes.update_recipe(recipe_id, filled["title"],
                           filled["ingredients"], filled["instructions"],
-                          [int(filled["taste"])])
+                          selected_class_ids(filled))
     flash("Your recipe was updated.")
     return redirect(f"/recipe/{recipe_id}")
 

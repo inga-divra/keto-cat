@@ -404,6 +404,45 @@ fieldset label {
   margin-right: 16px;
 }
 
+/* Recipe classifications: form groups and tags on the recipe page */
+
+.class-group .option {
+  display: inline-block;
+  white-space: nowrap;
+  margin: 2px 0;
+}
+
+.recipe-classes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 8px 16px;
+  margin: 8px 0 16px;
+}
+
+.recipe-classes dt {
+  font-weight: bold;
+}
+
+.recipe-classes dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tag-diet {
+  background: #fffaf1;
+}
+
+.tag-meal {
+  background: #fff3c4;
+}
+
+.tag-restrictions {
+  background: #ffffff;
+  border-style: dashed;
+}
+
 /* User profile */
 
 .profile-stats {

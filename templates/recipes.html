@@ -2,6 +2,12 @@
 
 {% block title %}Recipes{% endblock %}
 
+{# Link to another page of the same search and taste filter. #}
+{% macro page_url(number) -%}
+{{ url_for('show_recipes', q=keyword or None, taste=taste.value if taste else None,
+           page=number if number > 1 else None) }}
+{%- endmacro %}
+
 {% block content %}
 <section class="counter">
   <h2>Recipes</h2>
@@ -33,7 +39,7 @@
 
   {% if recipes %}
   <p>
-    {{ recipes|length }} {{ "recipe" if recipes|length == 1 else "recipes" }}
+    {{ recipe_count }} {{ "recipe" if recipe_count == 1 else "recipes" }}
     {%- if taste %} · {{ taste.value }}{% endif %}
     {%- if keyword %} · matching “{{ keyword }}”{% endif %}
   </p>
@@ -50,6 +56,29 @@
     </li>
     {% endfor %}
   </ul>
+
+  {% if page_count > 1 %}
+  <nav class="pagination" aria-label="Recipe pages">
+    <p class="page-status">Page {{ page }} of {{ page_count }}</p>
+    <ul>
+      {% if page > 1 %}
+      <li><a href="{{ page_url(page - 1) }}" class="button" rel="prev">&laquo; Previous</a></li>
+      {% endif %}
+      {% for number in range([page - 2, 1]|max, [page + 2, page_count]|min + 1) %}
+      <li>
+        {% if number == page %}
+        <a href="{{ page_url(number) }}" class="button selected" aria-current="page"><span class="visually-hidden">Page </span>{{ number }}</a>
+        {% else %}
+        <a href="{{ page_url(number) }}" class="button"><span class="visually-hidden">Page </span>{{ number }}</a>
+        {% endif %}
+      </li>
+      {% endfor %}
+      {% if page < page_count %}
+      <li><a href="{{ page_url(page + 1) }}" class="button" rel="next">Next &raquo;</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
   {% elif keyword or taste %}
   <p class="speech">Meow... I sniffed around the whole kitchen, but no recipes match your search. Try another word or taste!</p>
   {% else %}

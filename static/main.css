@@ -539,3 +539,39 @@ fieldset label {
   flex: 1 1 12rem;
   min-width: 0;
 }
+
+/* Recipes page: pagination */
+
+.pagination {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 3px dashed #3b2a20;
+  text-align: center;
+}
+
+.page-status {
+  margin: 0 0 8px;
+  font-family: "Pixelify Sans", "Courier New", monospace;
+  font-weight: 700;
+}
+
+.pagination ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Undo the margin that header navigation links get */
+.pagination a {
+  margin-left: 0;
+}
+
+.pagination a.selected {
+  background: #e8836b;
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 #3b2a20;
+}

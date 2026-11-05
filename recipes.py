@@ -42,16 +42,17 @@ def add_recipe(user_id, title, ingredients, instructions, class_ids):
         con.close()
     return recipe_id
 
-def get_recipes(keyword="", taste_id=None):
+def search_conditions(keyword, taste_id):
+    # The FROM and WHERE part shared by get_recipes and recipe_count,
+    # so that the page and the total count always use the same search.
+
     # Escape LIKE wildcards so that "%" and "_" in the keyword match literally.
     keyword = keyword.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     like = "%" + keyword + "%"
 
-    # LEFT JOIN keeps recipes that have no taste selected yet.
-    sql = """SELECT recipes.id, recipes.title, recipes.created_at,
-                    users.id AS user_id, users.username,
-                    taste.value AS taste
-             FROM recipes
+    # LEFT JOIN keeps recipes that have no taste selected yet. Only Taste
+    # classes are joined, so each recipe gives exactly one row.
+    sql = """FROM recipes
                   JOIN users ON users.id = recipes.user_id
                   LEFT JOIN recipe_classes
                        ON recipe_classes.recipe_id = recipes.id
@@ -65,9 +66,21 @@ def get_recipes(keyword="", taste_id=None):
     if taste_id:
         sql += " AND taste.id = ?"
         params.append(taste_id)
+    return sql, params
 
-    sql += " ORDER BY recipes.id DESC"
-    return db.query(sql, params)
+def recipe_count(keyword="", taste_id=None):
+    conditions, params = search_conditions(keyword, taste_id)
+    return db.query("SELECT COUNT(*) " + conditions, params)[0][0]
+
+def get_recipes(keyword="", taste_id=None, page=1, page_size=10):
+    conditions, params = search_conditions(keyword, taste_id)
+    sql = """SELECT recipes.id, recipes.title, recipes.created_at,
+                    users.id AS user_id, users.username,
+                    taste.value AS taste
+             """ + conditions + """
+             ORDER BY recipes.id DESC
+             LIMIT ? OFFSET ?"""
+    return db.query(sql, params + [page_size, page_size * (page - 1)])
 
 def get_recipe(recipe_id):
     sql = """SELECT recipes.id, recipes.title, recipes.ingredients,

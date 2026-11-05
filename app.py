@@ -1,8 +1,9 @@
+import math
 import re
 import secrets
 import sqlite3
 from flask import Flask
-from flask import abort, flash, redirect, render_template, request, session
+from flask import abort, flash, redirect, render_template, request, session, url_for
 import config
 import recipes
 import users
@@ -18,6 +19,7 @@ TITLE_MAX_LENGTH = 100
 INGREDIENTS_MAX_LENGTH = 3000
 INSTRUCTIONS_MAX_LENGTH = 5000
 SEARCH_MAX_LENGTH = 100
+PAGE_SIZE = 10
 COMMENT_MAX_LENGTH = 1000
 RATINGS = ["1", "2", "3", "4", "5"]
 
@@ -184,10 +186,29 @@ def show_recipes():
         if not taste:
             abort(404)
 
-    found_recipes = recipes.get_recipes(keyword, taste["id"] if taste else None)
+    taste_id = taste["id"] if taste else None
+    recipe_count = recipes.recipe_count(keyword, taste_id)
+    page_count = max(math.ceil(recipe_count / PAGE_SIZE), 1)
+
+    # An invalid page (abc, -1, 1.5) shows page 1 and a too big page number
+    # shows the last page. The redirect keeps the search and the taste filter.
+    page_value = request.args.get("page", "1")
+    if re.fullmatch(r"[0-9]+", page_value):
+        # Very long numbers are not converted, they are simply too big.
+        page = int(page_value) if len(page_value) <= 9 else page_count
+        page = min(max(page, 1), page_count)
+    else:
+        page = 1
+    if page_value != str(page):
+        return redirect(url_for("show_recipes", q=keyword or None,
+                                taste=taste["value"] if taste else None,
+                                page=page if page > 1 else None))
+
+    found_recipes = recipes.get_recipes(keyword, taste_id, page, PAGE_SIZE)
     return render_template("recipes.html", recipes=found_recipes,
                            tastes=recipes.get_classes(TASTE),
-                           keyword=keyword, taste=taste)
+                           keyword=keyword, taste=taste, recipe_count=recipe_count,
+                           page=page, page_count=page_count)
 
 @app.route("/recipe/<int:recipe_id>")
 def show_recipe(recipe_id):

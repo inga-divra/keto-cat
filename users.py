@@ -39,3 +39,7 @@ def get_recipes(user_id):
              WHERE recipes.user_id = ?
              ORDER BY recipes.id DESC"""
     return db.query(sql, [user_id])
+
+def get_comment_count(user_id):
+    sql = "SELECT COUNT(*) FROM comments WHERE user_id = ?"
+    return db.query(sql, [user_id])[0][0]

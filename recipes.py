@@ -88,7 +88,51 @@ def update_recipe(recipe_id, title, ingredients, instructions, class_ids):
     add_recipe_classes(recipe_id, class_ids)
 
 def remove_recipe(recipe_id):
+    # The reviews are removed too: explicitly here, and by ON DELETE CASCADE
+    # in schema.sql as a safety net.
+    sql = "DELETE FROM comments WHERE recipe_id = ?"
+    db.execute(sql, [recipe_id])
     sql = "DELETE FROM recipe_classes WHERE recipe_id = ?"
     db.execute(sql, [recipe_id])
     sql = "DELETE FROM recipes WHERE id = ?"
     db.execute(sql, [recipe_id])
+
+def get_comments(recipe_id):
+    sql = """SELECT comments.id, comments.content, comments.rating,
+                    comments.created_at, users.id AS user_id, users.username
+             FROM comments, users
+             WHERE comments.user_id = users.id AND comments.recipe_id = ?
+             ORDER BY comments.id DESC"""
+    return db.query(sql, [recipe_id])
+
+def get_rating(recipe_id):
+    sql = """SELECT COUNT(*) AS count, ROUND(AVG(rating), 1) AS average
+             FROM comments
+             WHERE recipe_id = ?"""
+    return db.query(sql, [recipe_id])[0]
+
+def get_comment(comment_id):
+    sql = """SELECT comments.id, comments.content, comments.rating,
+                    comments.user_id, comments.recipe_id,
+                    recipes.title AS recipe_title
+             FROM comments, recipes
+             WHERE comments.recipe_id = recipes.id AND comments.id = ?"""
+    result = db.query(sql, [comment_id])
+    return result[0] if result else None
+
+def has_comment(recipe_id, user_id):
+    sql = "SELECT id FROM comments WHERE recipe_id = ? AND user_id = ?"
+    return bool(db.query(sql, [recipe_id, user_id]))
+
+def add_comment(recipe_id, user_id, content, rating):
+    sql = """INSERT INTO comments (recipe_id, user_id, content, rating)
+             VALUES (?, ?, ?, ?)"""
+    db.execute(sql, [recipe_id, user_id, content, rating])
+
+def update_comment(comment_id, content, rating):
+    sql = "UPDATE comments SET content = ?, rating = ? WHERE id = ?"
+    db.execute(sql, [content, rating, comment_id])
+
+def remove_comment(comment_id):
+    sql = "DELETE FROM comments WHERE id = ?"
+    db.execute(sql, [comment_id])

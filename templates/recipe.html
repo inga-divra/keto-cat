@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "review.html" import stars, review_fields %}
 
 {% block title %}{{ recipe.title }}{% endblock %}
 
@@ -20,6 +21,56 @@
 
   <h3>Instructions</h3>
   <div class="recipe-text">{{ recipe.instructions }}</div>
+
+  <section class="reviews" id="reviews" aria-labelledby="reviews-title">
+    <h3 id="reviews-title">Reviews</h3>
+
+    {% if rating.count %}
+    <p class="rating-summary">
+      {{ stars(rating.average|round|int) }}
+      <strong>{{ rating.average }} / 5</strong>
+      · {{ rating.count }} {{ "rating" if rating.count == 1 else "ratings" }}
+    </p>
+
+    <ul class="review-list">
+      {% for comment in comments %}
+      <li class="review">
+        <p class="review-meta">
+          <a href="/user/{{ comment.user_id }}">{{ comment.username }}</a>,
+          <small>{{ comment.created_at[:10] }}</small>
+        </p>
+        <p class="review-rating">{{ stars(comment.rating) }} {{ comment.rating }} / 5</p>
+        <div class="recipe-text">{{ comment.content }}</div>
+        {% if session.user_id == comment.user_id %}
+        <p class="actions">
+          <a href="/edit_comment/{{ comment.id }}">Edit review</a>
+          <a href="/delete_comment/{{ comment.id }}">Delete review</a>
+        </p>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="speech">Meow... nobody has reviewed this recipe yet. Will you be the first taster?</p>
+    {% endif %}
+
+    {% if can_review %}
+    <h4>Leave a review</h4>
+    {% if error %}
+    <p class="message" role="alert">{{ error }}</p>
+    {% endif %}
+    <form action="/new_comment" method="post" class="review-form">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+      <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+      {{ review_fields(filled) }}
+      <button type="submit">Send review</button>
+    </form>
+    {% elif not session.user_id %}
+    <p><a href="/login">Log in</a> to leave a review.</p>
+    {% elif session.user_id == recipe.user_id %}
+    <p><small>This is your own recipe, so only other guests can review it.</small></p>
+    {% endif %}
+  </section>
 
   <p><a href="/recipes">Back to recipes</a></p>
 </section>

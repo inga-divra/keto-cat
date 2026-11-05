@@ -5,7 +5,7 @@
 {% block content %}
 <section class="counter">
   <h2>Delete recipe</h2>
-  <p class="speech">Are you sure you want to take <strong>{{ recipe.title }}</strong> off the menu? This can't be undone.</p>
+  <p class="speech">Are you sure you want to take <strong>{{ recipe.title }}</strong> off the menu? Its reviews will be deleted too. This can't be undone.</p>
 
   <form action="/delete_recipe/{{ recipe.id }}" method="post">
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">

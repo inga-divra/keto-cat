@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}Delete review{% endblock %}
+
+{% block content %}
+<section class="counter">
+  <h2>Delete review</h2>
+  <p class="speech">Are you sure you want to delete your review of <strong>{{ comment.recipe_title }}</strong>? This can't be undone.</p>
+
+  <form action="/delete_comment/{{ comment.id }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <button type="submit" class="danger">Yes, delete</button>
+    <a href="/recipe/{{ comment.recipe_id }}#reviews">Cancel</a>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,22 @@
+{# Shared pieces of the review forms and review lists. #}
+
+{# Decorative stars; the number is always written out next to them as text. #}
+{% macro stars(rating) -%}
+<span class="stars" aria-hidden="true">{{ "★" * rating }}{{ "☆" * (5 - rating) }}</span>
+{%- endmacro %}
+
+{% macro review_fields(filled) %}
+<fieldset>
+  <legend>Rating</legend>
+  {% for value in range(1, 6) %}
+  <input type="radio" name="rating" id="rating{{ value }}" value="{{ value }}" required
+         {% if filled.rating == value|string %}checked{% endif %}>
+  <label for="rating{{ value }}">{{ value }}</label>
+  {% endfor %}
+  <br><small>1 = not my cup of tea, 5 = purr-fect!</small>
+</fieldset>
+<p>
+  <label for="content">Comment</label><br>
+  <textarea name="content" id="content" rows="5" required maxlength="1000">{{ filled.content }}</textarea>
+</p>
+{% endmacro %}

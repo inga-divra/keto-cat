@@ -425,6 +425,47 @@ fieldset label {
   font-weight: 700;
 }
 
+/* Recipe reviews */
+
+.reviews {
+  margin-top: 24px;
+  padding-top: 8px;
+  border-top: 3px dashed #3b2a20;
+}
+
+.stars {
+  color: #8a3b12;
+  letter-spacing: 0.1em;
+}
+
+.rating-summary {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #fff3c4;
+  border: 3px solid #3b2a20;
+}
+
+.review-list {
+  list-style: none;
+  padding: 0;
+}
+
+.review {
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 3px solid #3b2a20;
+  box-shadow: 3px 3px 0 #3b2a20;
+}
+
+.review p {
+  margin: 4px 0;
+}
+
+.review-form textarea {
+  max-width: 100%;
+}
+
 /* Recipes page: taste filters and search */
 
 .taste-filters {

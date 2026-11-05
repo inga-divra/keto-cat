@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% from "review.html" import review_fields %}
+
+{% block title %}Edit review{% endblock %}
+
+{% block content %}
+<section class="counter">
+  <h2>Edit review</h2>
+  <p class="speech">Changed your mind about <strong>{{ comment.recipe_title }}</strong>? Tell me more!</p>
+
+  <form action="/edit_comment/{{ comment.id }}" method="post" class="review-form">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    {{ review_fields(filled) }}
+    <button type="submit">Save changes</button>
+    <a href="/recipe/{{ comment.recipe_id }}#reviews">Cancel</a>
+  </form>
+</section>
+{% endblock %}

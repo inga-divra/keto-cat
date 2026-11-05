@@ -18,6 +18,8 @@ TITLE_MAX_LENGTH = 100
 INGREDIENTS_MAX_LENGTH = 3000
 INSTRUCTIONS_MAX_LENGTH = 5000
 SEARCH_MAX_LENGTH = 100
+COMMENT_MAX_LENGTH = 1000
+RATINGS = ["1", "2", "3", "4", "5"]
 
 TASTE = "Taste"
 
@@ -65,6 +67,39 @@ def recipe_form_error(filled):
     if filled["taste"] not in taste_ids:
         return "Please choose a taste for your recipe."
     return None
+
+def get_own_comment(comment_id):
+    comment = recipes.get_comment(comment_id)
+    if not comment:
+        abort(404)
+    if comment["user_id"] != session["user_id"]:
+        abort(403)
+    return comment
+
+def read_comment_form():
+    return {
+        "content": request.form.get("content", "").strip(),
+        "rating": request.form.get("rating", "")
+    }
+
+def comment_form_error(filled):
+    if not filled["content"] or len(filled["content"]) > COMMENT_MAX_LENGTH:
+        return f"The comment must be 1–{COMMENT_MAX_LENGTH} characters long."
+    if filled["rating"] not in RATINGS:
+        return "Please rate the recipe from 1 to 5."
+    return None
+
+def render_recipe_page(recipe, filled=None, error=None):
+    recipe_id = recipe["id"]
+    user_id = session.get("user_id")
+    # Guests and recipe owners cannot review, and nobody can review twice.
+    can_review = (user_id is not None and user_id != recipe["user_id"]
+                  and not recipes.has_comment(recipe_id, user_id))
+    return render_template("recipe.html", recipe=recipe,
+                           taste=get_recipe_taste(recipe_id),
+                           comments=recipes.get_comments(recipe_id),
+                           rating=recipes.get_rating(recipe_id),
+                           can_review=can_review, filled=filled or {}, error=error)
 
 @app.before_request
 def add_csrf_token():
@@ -121,8 +156,7 @@ def show_recipe(recipe_id):
     recipe = recipes.get_recipe(recipe_id)
     if not recipe:
         abort(404)
-    taste = get_recipe_taste(recipe_id)
-    return render_template("recipe.html", recipe=recipe, taste=taste)
+    return render_recipe_page(recipe)
 
 @app.route("/user/<int:user_id>")
 def show_user(user_id):
@@ -130,9 +164,10 @@ def show_user(user_id):
     if not user:
         abort(404)
     recipe_count = users.get_recipe_count(user_id)
+    comment_count = users.get_comment_count(user_id)
     user_recipes = users.get_recipes(user_id)
     return render_template("user.html", user=user, recipe_count=recipe_count,
-                           recipes=user_recipes)
+                           comment_count=comment_count, recipes=user_recipes)
 
 @app.route("/new_recipe", methods=["GET", "POST"])
 def new_recipe():
@@ -194,6 +229,71 @@ def delete_recipe(recipe_id):
     recipes.remove_recipe(recipe_id)
     flash("The recipe was deleted.")
     return redirect("/recipes")
+
+@app.route("/new_comment", methods=["POST"])
+def new_comment():
+    require_login()
+    check_csrf()
+    recipe = recipes.get_recipe(request.form.get("recipe_id", 0, type=int))
+    if not recipe:
+        abort(404)
+    if recipe["user_id"] == session["user_id"]:
+        abort(403)
+
+    recipe_id = recipe["id"]
+    already_reviewed = "You have already reviewed this recipe. You can edit your review instead."
+    if recipes.has_comment(recipe_id, session["user_id"]):
+        flash(already_reviewed)
+        return redirect(f"/recipe/{recipe_id}#reviews")
+
+    filled = read_comment_form()
+    error = comment_form_error(filled)
+    if error:
+        return render_recipe_page(recipe, filled, error)
+
+    try:
+        recipes.add_comment(recipe_id, session["user_id"], filled["content"],
+                            int(filled["rating"]))
+    except sqlite3.IntegrityError:
+        # Another request saved a review for the same user and recipe first.
+        flash(already_reviewed)
+        return redirect(f"/recipe/{recipe_id}#reviews")
+
+    flash("Thank you for your review! Purr...")
+    return redirect(f"/recipe/{recipe_id}#reviews")
+
+@app.route("/edit_comment/<int:comment_id>", methods=["GET", "POST"])
+def edit_comment(comment_id):
+    require_login()
+    comment = get_own_comment(comment_id)
+
+    if request.method == "GET":
+        filled = {"content": comment["content"], "rating": str(comment["rating"])}
+        return render_template("edit_comment.html", comment=comment, filled=filled)
+
+    check_csrf()
+    filled = read_comment_form()
+    error = comment_form_error(filled)
+    if error:
+        flash(error)
+        return render_template("edit_comment.html", comment=comment, filled=filled)
+
+    recipes.update_comment(comment_id, filled["content"], int(filled["rating"]))
+    flash("Your review was updated.")
+    return redirect(f"/recipe/{comment['recipe_id']}#reviews")
+
+@app.route("/delete_comment/<int:comment_id>", methods=["GET", "POST"])
+def delete_comment(comment_id):
+    require_login()
+    comment = get_own_comment(comment_id)
+
+    if request.method == "GET":
+        return render_template("delete_comment.html", comment=comment)
+
+    check_csrf()
+    recipes.remove_comment(comment_id)
+    flash("Your review was deleted.")
+    return redirect(f"/recipe/{comment['recipe_id']}#reviews")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():

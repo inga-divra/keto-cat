@@ -42,6 +42,15 @@ def add_recipe(user_id, title, ingredients, instructions, class_ids):
         con.close()
     return recipe_id
 
+# Joins each recipe's Taste class as "taste". LEFT JOIN keeps recipes that
+# have no taste selected yet. Only Taste classes are joined, so each recipe
+# gives exactly one row. Used by the catalog and by the user profile.
+TASTE_JOIN = """LEFT JOIN recipe_classes
+                     ON recipe_classes.recipe_id = recipes.id
+                     AND recipe_classes.class_id IN
+                         (SELECT id FROM classes WHERE title = 'Taste')
+                LEFT JOIN classes AS taste ON taste.id = recipe_classes.class_id"""
+
 def search_conditions(keyword, taste_id):
     # The FROM and WHERE part shared by get_recipes and recipe_count,
     # so that the page and the total count always use the same search.
@@ -50,15 +59,9 @@ def search_conditions(keyword, taste_id):
     keyword = keyword.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     like = "%" + keyword + "%"
 
-    # LEFT JOIN keeps recipes that have no taste selected yet. Only Taste
-    # classes are joined, so each recipe gives exactly one row.
     sql = """FROM recipes
                   JOIN users ON users.id = recipes.user_id
-                  LEFT JOIN recipe_classes
-                       ON recipe_classes.recipe_id = recipes.id
-                       AND recipe_classes.class_id IN
-                           (SELECT id FROM classes WHERE title = 'Taste')
-                  LEFT JOIN classes AS taste ON taste.id = recipe_classes.class_id
+             """ + TASTE_JOIN + """
              WHERE (recipes.title LIKE ? ESCAPE '\\'
                     OR recipes.ingredients LIKE ? ESCAPE '\\')"""
     params = [like, like]

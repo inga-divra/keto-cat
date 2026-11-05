@@ -22,15 +22,13 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+import db
+import users
 
 BASE_DIR = Path(__file__).resolve().parent
 REAL_DATABASE = BASE_DIR / "database.db"
 INDEX = "idx_recipes_user"
 CREATE_INDEX = f"CREATE INDEX IF NOT EXISTS {INDEX} ON recipes (user_id)"
-
-sys.path.insert(0, str(BASE_DIR))
-import db  # noqa: E402
-import users  # noqa: E402
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Benchmark the idx_recipes_user index.")
@@ -122,6 +120,41 @@ def run_round(copies, connections, client, user_ids, samples):
                 sys.exit(f"/user/{user_id} returned {response.status_code}")
             samples[("GET /user/<id>", name)].append(elapsed)
 
+def measure(copies, client, user_ids, labels, args):
+    connections = {}
+    for name, folder in copies.items():
+        con = sqlite3.connect(folder / "database.db")
+        con.execute("PRAGMA foreign_keys = ON")
+        con.row_factory = sqlite3.Row
+        connections[name] = con
+    start_dir = Path.cwd()
+    try:
+        warmup = {(label, name): [] for label in labels for name in copies}
+        for _ in range(args.warmup):
+            run_round(copies, connections, client, user_ids, warmup)
+        samples = {(label, name): [] for label in labels for name in copies}
+        for _ in range(args.rounds):
+            run_round(copies, connections, client, user_ids, samples)
+    finally:
+        os.chdir(start_dir)
+        for con in connections.values():
+            con.close()
+    return samples
+
+def print_plans(copies):
+    for name, folder in copies.items():
+        print(f"\nEXPLAIN QUERY PLAN, {name}:")
+        for label, plan in query_plans(folder / "database.db").items():
+            print(f"  {label}: " + " | ".join(plan))
+
+def print_results(labels, samples):
+    print(f"\n{'Measured':26}{'without index':>16}{'with index':>14}{'speedup':>10}")
+    for label in labels:
+        without = statistics.median(samples[(label, "without index")]) * 1000
+        with_index = statistics.median(samples[(label, "with index")]) * 1000
+        print(f"{label:26}{without:13.3f} ms{with_index:11.3f} ms{without / with_index:9.1f}x")
+    print(f"(median of {len(samples[(labels[0], 'with index')])} measurements each)")
+
 def main():
     args = parse_arguments()
     source = check_source(args.database)
@@ -135,38 +168,11 @@ def main():
 
     client = load_client()
     labels = list(QUERIES) + (["GET /user/<id>"] if client else [])
-    start_dir = Path.cwd()
     with tempfile.TemporaryDirectory() as temp:
         copies = make_copies(source, Path(temp))
-        connections = {}
-        for name, folder in copies.items():
-            con = sqlite3.connect(folder / "database.db")
-            con.execute("PRAGMA foreign_keys = ON")
-            con.row_factory = sqlite3.Row
-            connections[name] = con
-        try:
-            warmup = {(label, name): [] for label in labels for name in copies}
-            for _ in range(args.warmup):
-                run_round(copies, connections, client, user_ids, warmup)
-            samples = {(label, name): [] for label in labels for name in copies}
-            for _ in range(args.rounds):
-                run_round(copies, connections, client, user_ids, samples)
-        finally:
-            os.chdir(start_dir)
-            for con in connections.values():
-                con.close()
-
-        for name, folder in copies.items():
-            print(f"\nEXPLAIN QUERY PLAN, {name}:")
-            for label, plan in query_plans(folder / "database.db").items():
-                print(f"  {label}: " + " | ".join(plan))
-
-    print(f"\n{'Measured':26}{'without index':>16}{'with index':>14}{'speedup':>10}")
-    for label in labels:
-        without = statistics.median(samples[(label, "without index")]) * 1000
-        with_index = statistics.median(samples[(label, "with index")]) * 1000
-        print(f"{label:26}{without:13.3f} ms{with_index:11.3f} ms{without / with_index:9.1f}x")
-    print(f"(median of {len(samples[(labels[0], 'with index')])} measurements each)")
+        samples = measure(copies, client, user_ids, labels, args)
+        print_plans(copies)
+    print_results(labels, samples)
 
 if __name__ == "__main__":
     main()

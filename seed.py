@@ -134,20 +134,8 @@ def make_reviews(rng, recipes, users, count):
                         date.strftime("%Y-%m-%d %H:%M:%S")))
     return reviews
 
-def main():
-    args = parse_arguments()
-    target = check_target(args)
+def generate_rows(args, class_ids):
     rng = random.Random(args.seed)
-
-    target.parent.mkdir(parents=True, exist_ok=True)
-    if target.exists():
-        target.unlink()
-
-    con = sqlite3.connect(target)
-    con.execute("PRAGMA foreign_keys = ON")
-    for sql_file in SQL_FILES:
-        con.executescript(sql_file.read_text(encoding="utf-8"))
-    class_ids = get_class_ids(con)
 
     # One hash for everybody: hashing is slow on purpose, and every user
     # still logs in with the same password.
@@ -162,7 +150,9 @@ def main():
         class_rows.extend(classes)
     recipes = [(row[0], row[1], row[5]) for row in recipe_rows]
     review_rows = make_reviews(rng, recipes, users, args.reviews)
+    return user_rows, recipe_rows, class_rows, review_rows
 
+def insert_rows(con, user_rows, recipe_rows, class_rows, review_rows):
     # All rows are inserted in one transaction: much faster than one
     # commit per row, and nothing is saved if any insert fails.
     with con:
@@ -177,12 +167,30 @@ def main():
                                                 created_at)
                            VALUES (?, ?, ?, ?, ?)""", review_rows)
 
+def print_summary(con, target):
     print(f"Created {target}")
     for table in ["users", "recipes", "recipe_classes", "comments"]:
         count = con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
         print(f"  {table}: {count}")
     print("integrity_check:", con.execute("PRAGMA integrity_check").fetchone()[0])
     print("foreign_key_check:", con.execute("PRAGMA foreign_key_check").fetchall() or "ok")
+
+def main():
+    args = parse_arguments()
+    target = check_target(args)
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if target.exists():
+        target.unlink()
+
+    con = sqlite3.connect(target)
+    con.execute("PRAGMA foreign_keys = ON")
+    for sql_file in SQL_FILES:
+        con.executescript(sql_file.read_text(encoding="utf-8"))
+
+    rows = generate_rows(args, get_class_ids(con))
+    insert_rows(con, *rows)
+    print_summary(con, target)
     con.close()
 
 if __name__ == "__main__":

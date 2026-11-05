@@ -150,6 +150,14 @@ Juuri luodussa tietokannassa ei ole käyttäjiä eikä reseptejä. Siksi testaus
 14. Kirjaudu ulos ja kirjaudu sisään ensimmäisellä tunnuksella. Toisen käyttäjän arviossa ei ole muokkaus- ja poistolinkkejä. Jos kirjoitat osoiteriville suoraan kohdassa 12 muistiin kirjoitetun osoitteen `/edit_comment/<id>` tai `/delete_comment/<id>`, sovellus palauttaa virheen 403 (Forbidden).
 15. Kirjaudu ulos painikkeella **Log out** ja avaa resepti kirjautumattomana. Arviot, keskiarvo ja käyttäjäsivut näkyvät, ja arviolomakkeen tilalla on linkki **Log in**.
 
+### Koodin laadun tarkastus
+
+![Alustavan Pylint-tarkastuksen tulokset: pistemäärä 8,79/10 ennen ja 8,80/10 jälkeen, muut kuin docstring-ilmoitukset vähenivät 8:sta 3:een eli 62,5 prosenttia](docs/images/pylint-audit.svg)
+
+Koodi tarkastettiin alustavasti Pylintillä (versio 4.1.3) 5.11.2026. Pistemäärä oli 8,79/10 ennen korjauksia ja 8,80/10 niiden jälkeen. Muut kuin docstring-ilmoitukset vähenivät 8:sta 3:een (62,5 % vähemmän): toistuva SQL-koodi ja väärin sijoitetut importit korjattiin, ja pitkät funktiot jaettiin pienempiin. Ilmoitusten kokonaismäärä kasvoi 85:stä 86:een, koska uudet apufunktiot lisäsivät docstring-ilmoituksia (77 → 83). Kummassakaan ajossa ei ollut virhe- (E) eikä varoitusluokan (W) ilmoituksia.
+
+Tarkastuksen tiedot ja jäljelle jääneiden ilmoitusten perustelut ovat raportissa [docs/pylint-initial-audit.md](docs/pylint-initial-audit.md). Tämä on alustava tarkastus: lopullinen raportti `pylint-report.md` tehdään sovelluksen lopullisesta versiosta.
+
 ## Suorituskyvyn testaus
 
 ### Testitietokanta

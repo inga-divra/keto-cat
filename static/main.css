@@ -131,6 +131,15 @@ button.danger {
   overflow-wrap: anywhere;
 }
 
+/* A very long word in a recipe title breaks onto the next line instead of
+   making narrow screens scroll sideways. */
+.counter > h2,
+.suggestion h3,
+.recipe-list a,
+.speech {
+  overflow-wrap: anywhere;
+}
+
 .actions a {
   margin-right: 12px;
 }

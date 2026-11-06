@@ -10,6 +10,16 @@ import users
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
+# The browser does not send the session cookie with requests started by
+# other sites (extra protection on top of the CSRF tokens). Secure is not
+# set, so that the app still works on http://127.0.0.1 during development.
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+# SQLite stores integers in 64 bits, and sqlite3 raises OverflowError for
+# bigger Python ints. Ids in URLs and forms are limited to this value, so
+# a too big id gives 404 instead of a server error.
+MAX_ID = 2**63 - 1
+ID = f"int(max={MAX_ID})"
 
 USERNAME_PATTERN = r"[A-Za-z0-9_-]{3,20}"
 PASSWORD_MIN_LENGTH = 8
@@ -43,6 +53,14 @@ def check_csrf():
         abort(403)
     if request.form["csrf_token"] != session.get("csrf_token"):
         abort(403)
+
+def parse_id(value):
+    # Returns the id given in a form or query parameter, or None if it is
+    # not a whole number between 1 and MAX_ID.
+    if not value or not value.isascii() or not value.isdigit() or len(value) > 19:
+        return None
+    number = int(value)
+    return number if 1 <= number <= MAX_ID else None
 
 def get_own_recipe(recipe_id):
     recipe = recipes.get_recipe(recipe_id)
@@ -185,6 +203,10 @@ def add_csrf_token():
     if "csrf_token" not in session:
         session["csrf_token"] = secrets.token_hex(16)
 
+@app.errorhandler(403)
+def forbidden(_error):
+    return render_template("403.html"), 403
+
 @app.errorhandler(404)
 def page_not_found(_error):
     return render_template("404.html"), 404
@@ -201,7 +223,7 @@ def index():
         abort(404)
 
     # Try not to suggest the same recipe twice in a row.
-    previous_id = request.args.get("previous", 0, type=int)
+    previous_id = parse_id(request.args.get("previous")) or 0
     suggestion = recipes.get_random_recipe(taste["id"], previous_id)
     if not suggestion:
         suggestion = recipes.get_random_recipe(taste["id"])
@@ -261,14 +283,14 @@ def show_recipes():
                            keyword=keyword, taste=taste, recipe_count=recipe_count,
                            page=page, page_count=page_count)
 
-@app.route("/recipe/<int:recipe_id>")
+@app.route(f"/recipe/<{ID}:recipe_id>")
 def show_recipe(recipe_id):
     recipe = recipes.get_recipe(recipe_id)
     if not recipe:
         abort(404)
     return render_recipe_page(recipe)
 
-@app.route("/user/<int:user_id>")
+@app.route(f"/user/<{ID}:user_id>")
 def show_user(user_id):
     user = users.get_user(user_id)
     if not user:
@@ -302,7 +324,7 @@ def new_recipe():
     flash("Purr-fect! Your recipe was added.")
     return redirect(f"/recipe/{recipe_id}")
 
-@app.route("/edit_recipe/<int:recipe_id>", methods=["GET", "POST"])
+@app.route(f"/edit_recipe/<{ID}:recipe_id>", methods=["GET", "POST"])
 def edit_recipe(recipe_id):
     require_login()
     recipe = get_own_recipe(recipe_id)
@@ -329,7 +351,7 @@ def edit_recipe(recipe_id):
     flash("Your recipe was updated.")
     return redirect(f"/recipe/{recipe_id}")
 
-@app.route("/delete_recipe/<int:recipe_id>", methods=["GET", "POST"])
+@app.route(f"/delete_recipe/<{ID}:recipe_id>", methods=["GET", "POST"])
 def delete_recipe(recipe_id):
     require_login()
     recipe = get_own_recipe(recipe_id)
@@ -346,7 +368,8 @@ def delete_recipe(recipe_id):
 def new_comment():
     require_login()
     check_csrf()
-    recipe = recipes.get_recipe(request.form.get("recipe_id", 0, type=int))
+    form_recipe_id = parse_id(request.form.get("recipe_id"))
+    recipe = recipes.get_recipe(form_recipe_id) if form_recipe_id else None
     if not recipe:
         abort(404)
     if recipe["user_id"] == session["user_id"]:
@@ -374,7 +397,7 @@ def new_comment():
     flash("Thank you for your review! Purr...")
     return redirect(f"/recipe/{recipe_id}#reviews")
 
-@app.route("/edit_comment/<int:comment_id>", methods=["GET", "POST"])
+@app.route(f"/edit_comment/<{ID}:comment_id>", methods=["GET", "POST"])
 def edit_comment(comment_id):
     require_login()
     comment = get_own_comment(comment_id)
@@ -394,7 +417,7 @@ def edit_comment(comment_id):
     flash("Your review was updated.")
     return redirect(f"/recipe/{comment['recipe_id']}#reviews")
 
-@app.route("/delete_comment/<int:comment_id>", methods=["GET", "POST"])
+@app.route(f"/delete_comment/<{ID}:comment_id>", methods=["GET", "POST"])
 def delete_comment(comment_id):
     require_login()
     comment = get_own_comment(comment_id)

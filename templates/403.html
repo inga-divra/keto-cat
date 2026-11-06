@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% from "cat.html" import pixel_cat %}
+
+{% block title %}Access denied{% endblock %}
+
+{% block content %}
+<section class="counter centered">
+  {{ pixel_cat() }}
+
+  <div class="cat-sign">
+    <h2 class="error-code">403<span class="visually-hidden"> – access denied</span></h2>
+  </div>
+
+  <p class="speech"><strong>Meow... this part of the kitchen is off limits!</strong></p>
+  {% if session.user_id %}
+  <p>Only the baker who owns this recipe or review can change it.</p>
+  {% else %}
+  <p>Please <a href="/login">log in</a> first, then try again.</p>
+  {% endif %}
+  <p class="suggestion-actions">
+    <a href="/" class="button button-large">Back to Home</a>
+    <a href="/recipes" class="button button-large">Browse recipes</a>
+  </p>
+</section>
+{% endblock %}

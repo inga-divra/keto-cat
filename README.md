@@ -17,7 +17,7 @@ Tässä pääasiallinen tietokohde on resepti ja toissijainen tietokohde on komm
 - Reseptilistan voi suodattaa maun perusteella, ja suodatusta voi käyttää yhdessä haun kanssa.
 - Reseptilistan kohdasta **Advanced filters** voi lisäksi suodattaa ruokavalion, aterian ja erityisruokavalioiden perusteella. Kaikki ehdot ovat voimassa yhtä aikaa, ja jos erityisruokavalioita valitaan useita, reseptissä on oltava ne kaikki. Valitut suodattimet näkyvät osoitteessa, joten suodatetun listan voi jakaa linkkinä, ja ne säilyvät sivulta toiselle siirryttäessä.
 - Etusivun pikselitaidekissa ehdottaa satunnaisen reseptin käyttäjän valitseman maun perusteella.
-- Reseptilista on sivutettu: sivulla näytetään 10 reseptiä. Sivutus toimii myös haun ja maun suodatuksen kanssa.
+- Reseptilista on sivutettu: sivulla näytetään 10 reseptiä. Sivutus toimii myös haun ja kaikkien suodattimien kanssa.
 
 ### Reseptien luokittelut
 
@@ -42,12 +42,6 @@ Vapaaehtoisia luokitteluja voi muuttaa tai poistaa reseptiä muokattaessa. Maku 
 - Käyttäjä voi muokata ja poistaa omia arvioitaan.
 - Kaikki, myös kirjautumattomat käyttäjät, näkevät arviot. Reseptin sivulla näytetään arvosanojen keskiarvo ja määrä.
 - Kun resepti poistetaan, myös sen arviot poistetaan.
-
-## Suunnitellut ominaisuudet
-
-Nämä ominaisuudet eivät ole vielä valmiita:
-
-- Reseptikuvat.
 
 ## Sovelluksen käynnistäminen
 
@@ -137,11 +131,13 @@ Juuri luodussa tietokannassa ei ole käyttäjiä eikä reseptejä. Siksi testaus
    - Toiselle vain maku **Savory**. Jätä ruokavalioksi ja ateriaksi **Not specified** ja erityisruokavaliot valitsematta.
 
    Voit kirjoittaa aineksiin ja ohjeeseen useita rivejä, ja rivinvaihdot näkyvät reseptin sivulla. Reseptin sivulla näkyvät kaikki valitut luokittelut. Omassa reseptissä ei ole arviolomaketta, koska omaa reseptiä ei voi arvioida.
+
 4. Avaa sivu **Recipes**. Siinä näkyvät kaikkien käyttäjien reseptit, niiden maku, lisääjä ja lisäyspäivä.
 5. Kirjoita hakukenttään sana, joka esiintyy reseptin nimessä tai aineksissa, ja paina **Search**. **Clear** tyhjentää haun.
 6. Suodata reseptejä painikkeilla **Sweet**, **Savory** ja **All recipes**. Suodatus toimii myös yhdessä haun kanssa.
 
    Avaa hakukentän alta **Advanced filters**, valitse esimerkiksi ruokavalio **Keto** ja erityisruokavaliot **Dairy-free** ja **Nut-free** ja paina **Apply filters**. Listalla näkyvät vain reseptit, joissa on kaikki valitut ominaisuudet, ja valinnat jäävät näkyviin. Kun reseptejä on yli 10, sivulta toiselle siirtyminen säilyttää suodattimet. **Reset filters** poistaa lisäsuodattimet mutta säilyttää haun ja maun. Etusivun kissa ei käytä näitä suodattimia.
+
 7. Palaa etusivulle (**Home**) ja valitse **Sweet** tai **Savory**. Kissa ehdottaa satunnaista reseptiä, ja **Show me another** pyytää uuden ehdotuksen.
 8. Avaa ensimmäinen resepti ja valitse **Edit**. Aiemmat luokittelut ovat valmiiksi valittuina. Vaihda ateria, poista ruokavalio valitsemalla **Not specified** ja poista yksi erityisruokavalio. Tallenna ja tarkista muutokset reseptin sivulta.
 9. Avaa toinen resepti ja valitse **Delete**. Poisto pyytää vielä vahvistuksen.
@@ -195,11 +191,11 @@ Mittaustapa:
 - Lisäksi mitattiin pelkät SQL-kyselyt samalla tavalla avoimen tietokantayhteyden kautta.
 - Ympäristö: Windows 11, Python 3.13.7, SQLite 3.50.4.
 
-| Mitattu | Ilman indeksiä | Indeksin kanssa | Nopeutus |
-|---|---|---|---|
-| Sivu `/user/<id>` | 12,75 ms | 5,51 ms | 2,3-kertainen |
-| Kysely `users.get_recipe_count` | 2,754 ms | 0,065 ms | 42-kertainen |
-| Kysely `users.get_recipes` | 3,526 ms | 0,546 ms | 6,5-kertainen |
+| Mitattu                         | Ilman indeksiä | Indeksin kanssa | Nopeutus      |
+| ------------------------------- | -------------- | --------------- | ------------- |
+| Sivu `/user/<id>`               | 12,75 ms       | 5,51 ms         | 2,3-kertainen |
+| Kysely `users.get_recipe_count` | 2,754 ms       | 0,065 ms        | 42-kertainen  |
+| Kysely `users.get_recipes`      | 3,526 ms       | 0,546 ms        | 6,5-kertainen |
 
 ![Käyttäjäsivun latausajan vertailu: ilman indeksiä 12,75 ms ja indeksin kanssa 5,51 ms, noin 2,3 kertaa nopeampi](docs/images/sqlite-performance.svg)
 
@@ -222,19 +218,14 @@ Myös indeksiä `comments (user_id)` kokeiltiin. Se nopeutti käyttäjän kommen
 
 Mitattu suurella tietokannalla indeksin kanssa, sivunlatauksen mediaani 100 mittauksesta:
 
-| Sivu | Aika |
-|---|---|
-| `/recipes` (sivu 1) | 12,57 ms |
+| Sivu                                  | Aika     |
+| ------------------------------------- | -------- |
+| `/recipes` (sivu 1)                   | 12,57 ms |
 | `/recipes?page=1000` (viimeinen sivu) | 22,28 ms |
-| `/recipes?q=chocolate` | 10,26 ms |
-| `/?taste=Sweet` (kissan ehdotus) | 7,78 ms |
+| `/recipes?q=chocolate`                | 10,26 ms |
+| `/?taste=Sweet` (kissan ehdotus)      | 7,78 ms  |
 
 - Haku `LIKE '%sana%'` ei voi käyttää tavallista indeksiä, joten SQLite käy läpi kaikki reseptit.
 - Reseptien määrän laskeminen (`COUNT(*)`) käy läpi kaikki hakuehtoon sopivat reseptit jokaisella sivulla.
 - Kaukaiset sivut ovat hitaampia, koska `OFFSET` ohittaa edelliset rivit yksitellen.
 - Kissan ehdotus (`ORDER BY RANDOM()`) järjestää kaikki valitun maun reseptit.
-
-## Nykyiset rajoitukset
-
-- Sovellus on vielä kehitysvaiheessa.
-- Reseptikuvia ei vielä voi lisätä.

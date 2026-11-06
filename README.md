@@ -150,11 +150,20 @@ Juuri luodussa tietokannassa ei ole käyttäjiä eikä reseptejä. Siksi testaus
 
 ### Koodin laadun tarkastus
 
-![Alustavan Pylint-tarkastuksen tulokset: pistemäärä 8,79/10 ennen ja 8,80/10 jälkeen, muut kuin docstring-ilmoitukset vähenivät 8:sta 3:een eli 62,5 prosenttia](docs/images/pylint-audit.svg)
+![Lopullisen Pylint-tarkastuksen tulokset: pistemäärä 8,79/10 alussa ja 8,80/10 lopussa, muut kuin docstring-ilmoitukset vähenivät 8:sta 3:een eli 62,5 prosenttia](docs/images/pylint-audit.svg)
 
-Koodi tarkastettiin alustavasti Pylintillä (versio 4.1.3) 5.11.2026. Pistemäärä oli 8,79/10 ennen korjauksia ja 8,80/10 niiden jälkeen. Muut kuin docstring-ilmoitukset vähenivät 8:sta 3:een (62,5 % vähemmän): toistuva SQL-koodi ja väärin sijoitetut importit korjattiin, ja pitkät funktiot jaettiin pienempiin. Ilmoitusten kokonaismäärä kasvoi 85:stä 86:een, koska uudet apufunktiot lisäsivät docstring-ilmoituksia (77 → 83). Kummassakaan ajossa ei ollut virhe- (E) eikä varoitusluokan (W) ilmoituksia.
+Sovelluksen lopullinen versio tarkastettiin Pylintillä (versio 4.1.3) 6.11.2026 samalla komennolla ja samoille tiedostoille kuin ensimmäinen tarkastus 5.11.2026:
 
-Tarkastuksen tiedot ja jäljelle jääneiden ilmoitusten perustelut ovat raportissa [docs/pylint-initial-audit.md](docs/pylint-initial-audit.md). Tämä on alustava tarkastus: lopullinen raportti `pylint-report.md` tehdään sovelluksen lopullisesta versiosta.
+```
+pylint app.py db.py users.py recipes.py init_db.py seed.py benchmark.py
+```
+
+- Lopullinen pistemäärä on 8,80/10 (alussa 8,79/10).
+- Muut kuin docstring-ilmoitukset vähenivät 8:sta 3:een eli 62,5 %. Jäljellä ovat kaksi R0911-ilmoitusta ja yksi R0914-ilmoitus, ja ne on perusteltu raportissa.
+- Ilmoituksia on yhteensä 91, joista 88 koskee puuttuvia docstring-kommentteja. Määrä kasvoi alun 85:stä, koska uudet ominaisuudet ja apufunktiot lisäsivät docstring-ilmoituksia (77 → 88).
+- Kummassakaan tarkastuksessa ei ollut virhe- (E) eikä varoitusluokan (W) ilmoituksia.
+
+Jokainen jäljelle jäänyt ilmoitus ja sen perustelu on raportissa **[pylint-report.md](pylint-report.md)**. Pylintin koko tuloste on tiedostossa [docs/pylint/final-output.txt](docs/pylint/final-output.txt).
 
 ## Suorituskyvyn testaus
 

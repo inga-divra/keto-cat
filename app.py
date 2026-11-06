@@ -60,6 +60,43 @@ def get_class_groups():
              "options": options.get(title, [])}
             for title, multiple, required in CLASS_GROUPS]
 
+def read_catalog_filters(class_groups):
+    # Reads the Diet, Meal and Restrictions filters of the recipe catalog.
+    # Returns the chosen class ids by group, and False if some value was not
+    # an option of its own group (or a single-choice group got two values).
+    filters, valid = {}, True
+    for group in class_groups:
+        if group["title"] == TASTE:
+            continue
+        option_ids = [str(option["id"]) for option in group["options"]]
+        # dict.fromkeys drops repeated values, "" means "any".
+        values = [value for value in dict.fromkeys(request.args.getlist(group["title"].lower()))
+                  if value]
+        chosen = [value for value in values if value in option_ids]
+        if not group["multiple"]:
+            chosen = chosen[:1]
+        if chosen != values:
+            valid = False
+        filters[group["title"]] = chosen
+    return filters, valid
+
+def catalog_args(keyword, taste, filters):
+    # The GET parameters of the current catalog view.
+    args = {"q": keyword or None, "taste": taste["value"] if taste else None}
+    for title, values in filters.items():
+        args[title.lower()] = values or None
+    return args
+
+def read_page(page_count):
+    # An invalid page (abc, -1, 1.5) gives page 1 and a too big page number
+    # gives the last page.
+    page_value = request.args.get("page", "1")
+    if not re.fullmatch(r"[0-9]+", page_value):
+        return 1
+    # Very long numbers are not converted, they are simply too big.
+    page = int(page_value) if len(page_value) <= 9 else page_count
+    return min(max(page, 1), page_count)
+
 def empty_classes():
     return {title: [] for title, _, _ in CLASS_GROUPS}
 
@@ -186,27 +223,41 @@ def show_recipes():
         if not taste:
             abort(404)
 
+    class_groups = get_class_groups()
+    filters, filters_valid = read_catalog_filters(class_groups)
+    current_args = catalog_args(keyword, taste, filters)
+
+    # Every link of the page (taste buttons, pages, reset) keeps all the
+    # active filters, and only changes what is given to catalog_url.
+    def catalog_url(**changes):
+        return url_for("show_recipes", **{**current_args, **changes})
+
+    # Unknown filter values are removed, and the page starts from the beginning.
+    if not filters_valid:
+        flash("Some filters were not recognized, so they were removed.")
+        return redirect(catalog_url())
+
     taste_id = taste["id"] if taste else None
-    recipe_count = recipes.recipe_count(keyword, taste_id)
+    class_ids = [int(value) for values in filters.values() for value in values]
+    recipe_count = recipes.recipe_count(keyword, taste_id, class_ids)
     page_count = max(math.ceil(recipe_count / PAGE_SIZE), 1)
 
-    # An invalid page (abc, -1, 1.5) shows page 1 and a too big page number
-    # shows the last page. The redirect keeps the search and the taste filter.
-    page_value = request.args.get("page", "1")
-    if re.fullmatch(r"[0-9]+", page_value):
-        # Very long numbers are not converted, they are simply too big.
-        page = int(page_value) if len(page_value) <= 9 else page_count
-        page = min(max(page, 1), page_count)
-    else:
-        page = 1
-    if page_value != str(page):
-        return redirect(url_for("show_recipes", q=keyword or None,
-                                taste=taste["value"] if taste else None,
-                                page=page if page > 1 else None))
+    # The redirect to a valid page keeps the search and all filters.
+    page = read_page(page_count)
+    if request.args.get("page", "1") != str(page):
+        return redirect(catalog_url(page=page if page > 1 else None))
 
-    found_recipes = recipes.get_recipes(keyword, taste_id, page, PAGE_SIZE)
+    found_recipes = recipes.get_recipes(keyword, taste_id, page, PAGE_SIZE, class_ids)
+    filter_labels = [option["value"] for group in class_groups for option in group["options"]
+                     if str(option["id"]) in filters.get(group["title"], [])]
     return render_template("recipes.html", recipes=found_recipes,
                            tastes=recipes.get_classes(TASTE),
+                           filter_groups=[group for group in class_groups
+                                          if group["title"] != TASTE],
+                           filters=filters, filter_labels=filter_labels,
+                           catalog_url=catalog_url,
+                           reset_filters_url=catalog_url(**{title.lower(): None
+                                                            for title in filters}),
                            keyword=keyword, taste=taste, recipe_count=recipe_count,
                            page=page, page_count=page_count)
 

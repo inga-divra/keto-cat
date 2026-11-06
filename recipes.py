@@ -51,9 +51,11 @@ TASTE_JOIN = """LEFT JOIN recipe_classes
                          (SELECT id FROM classes WHERE title = 'Taste')
                 LEFT JOIN classes AS taste ON taste.id = recipe_classes.class_id"""
 
-def search_conditions(keyword, taste_id):
+def search_conditions(keyword, taste_id, class_ids=()):
     # The FROM and WHERE part shared by get_recipes and recipe_count,
     # so that the page and the total count always use the same search.
+    # class_ids are the Diet, Meal and Restrictions filters: the recipe
+    # must have every one of them.
 
     # Escape LIKE wildcards so that "%" and "_" in the keyword match literally.
     keyword = keyword.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
@@ -69,14 +71,22 @@ def search_conditions(keyword, taste_id):
     if taste_id:
         sql += " AND taste.id = ?"
         params.append(taste_id)
+
+    # EXISTS only checks the class and never adds rows, so a recipe with
+    # many classes is still listed once.
+    for class_id in class_ids:
+        sql += """ AND EXISTS (SELECT 1 FROM recipe_classes AS chosen
+                               WHERE chosen.recipe_id = recipes.id
+                                     AND chosen.class_id = ?)"""
+        params.append(class_id)
     return sql, params
 
-def recipe_count(keyword="", taste_id=None):
-    conditions, params = search_conditions(keyword, taste_id)
+def recipe_count(keyword="", taste_id=None, class_ids=()):
+    conditions, params = search_conditions(keyword, taste_id, class_ids)
     return db.query("SELECT COUNT(*) " + conditions, params)[0][0]
 
-def get_recipes(keyword="", taste_id=None, page=1, page_size=10):
-    conditions, params = search_conditions(keyword, taste_id)
+def get_recipes(keyword="", taste_id=None, page=1, page_size=10, class_ids=()):
+    conditions, params = search_conditions(keyword, taste_id, class_ids)
     sql = """SELECT recipes.id, recipes.title, recipes.created_at,
                     users.id AS user_id, users.username,
                     taste.value AS taste

@@ -540,6 +540,49 @@ fieldset label {
   min-width: 0;
 }
 
+/* Recipes page: advanced filters (native details, no JavaScript) */
+
+.advanced-filters {
+  margin-top: 12px;
+  border: 3px solid #3b2a20;
+  background: #fff3c4;
+}
+
+.advanced-filters summary {
+  padding: 6px 12px;
+  cursor: pointer;
+  font-family: "Pixelify Sans", "Courier New", monospace;
+  font-weight: 700;
+  /* Pixelify Sans would join "fi" in "filters" into one glyph */
+  font-variant-ligatures: none;
+}
+
+.advanced-filters label {
+  font-weight: normal;
+}
+
+.advanced-filters summary:focus-visible {
+  outline: 3px dashed #8a3b12;
+  outline-offset: 2px;
+}
+
+.advanced-filters[open] summary {
+  border-bottom: 3px dashed #3b2a20;
+}
+
+.advanced-filters fieldset {
+  margin: 8px 12px;
+  background: #fffaf1;
+}
+
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 8px 12px 12px;
+}
+
 /* Recipes page: pagination */
 
 .pagination {

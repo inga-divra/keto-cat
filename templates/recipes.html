@@ -2,10 +2,9 @@
 
 {% block title %}Recipes{% endblock %}
 
-{# Link to another page of the same search and taste filter. #}
+{# Link to another page with the same search and filters. #}
 {% macro page_url(number) -%}
-{{ url_for('show_recipes', q=keyword or None, taste=taste.value if taste else None,
-           page=number if number > 1 else None) }}
+{{ catalog_url(page=number if number > 1 else None) }}
 {%- endmacro %}
 
 {% block content %}
@@ -14,11 +13,11 @@
   <p class="speech">Here's today's menu! Everything is baked by our lovely guests.</p>
 
   <div class="taste-filters" role="group" aria-label="Filter by taste">
-    <a href="{{ url_for('show_recipes', q=keyword or None) }}"
+    <a href="{{ catalog_url(taste=None) }}"
        class="button filter{% if not taste %} selected{% endif %}"
        {% if not taste %}aria-current="page"{% endif %}>All recipes</a>
     {% for option in tastes %}
-    <a href="{{ url_for('show_recipes', taste=option.value, q=keyword or None) }}"
+    <a href="{{ catalog_url(taste=option.value) }}"
        class="button filter choice-{{ option.value|lower }}{% if taste and taste.id == option.id %} selected{% endif %}"
        {% if taste and taste.id == option.id %}aria-current="page"{% endif %}>{{ option.value }}</a>
     {% endfor %}
@@ -35,12 +34,46 @@
       <button type="submit">Search</button>
       <a href="/recipes">Clear</a>
     </div>
+
+    <details class="advanced-filters"{% if filter_labels %} open{% endif %}>
+      <summary>Advanced filters{% if filter_labels %} ({{ filter_labels|length }} active){% endif %}</summary>
+      {% for group in filter_groups %}
+      {% set name = group.title|lower %}
+      {% set selected = filters[group.title] %}
+      <fieldset class="class-group">
+        <legend>{{ group.title }}</legend>
+        {% if not group.multiple %}
+        <span class="option">
+          <input type="radio" name="{{ name }}" id="filter-{{ name }}-any" value=""
+                 {% if not selected %}checked{% endif %}>
+          <label for="filter-{{ name }}-any">Any {{ name }}</label>
+        </span>
+        {% endif %}
+        {% for option in group.options %}
+        <span class="option">
+          <input type="{{ 'checkbox' if group.multiple else 'radio' }}" name="{{ name }}"
+                 id="filter{{ option.id }}" value="{{ option.id }}"
+                 {% if option.id|string in selected %}checked{% endif %}>
+          <label for="filter{{ option.id }}">{{ option.value }}</label>
+        </span>
+        {% endfor %}
+        {% if group.multiple %}
+        <br><small>A recipe must have all ticked options.</small>
+        {% endif %}
+      </fieldset>
+      {% endfor %}
+      <p class="filter-actions">
+        <button type="submit">Apply filters</button>
+        <a href="{{ reset_filters_url }}">Reset filters</a>
+      </p>
+    </details>
   </form>
 
   {% if recipes %}
   <p>
     {{ recipe_count }} {{ "recipe" if recipe_count == 1 else "recipes" }}
     {%- if taste %} · {{ taste.value }}{% endif %}
+    {%- for label in filter_labels %} · {{ label }}{% endfor %}
     {%- if keyword %} · matching “{{ keyword }}”{% endif %}
   </p>
   <ul class="recipe-list">
@@ -79,8 +112,8 @@
     </ul>
   </nav>
   {% endif %}
-  {% elif keyword or taste %}
-  <p class="speech">Meow... I sniffed around the whole kitchen, but no recipes match your search. Try another word or taste!</p>
+  {% elif keyword or taste or filter_labels %}
+  <p class="speech">Meow... I sniffed around the whole kitchen, but no recipes match your search. Try another word, taste or filter!</p>
   {% else %}
   <p>The menu is still empty. Meow, maybe you could add the first recipe?</p>
   {% endif %}

@@ -15,6 +15,7 @@ Tässä pääasiallinen tietokohde on resepti ja toissijainen tietokohde on komm
 - Kaikki käyttäjät, myös kirjautumattomat, näkevät eri käyttäjien lisäämät reseptit.
 - Käyttäjä pystyy etsimään reseptejä hakusanalla. Haku kohdistuu reseptin nimeen ja aineksiin.
 - Reseptilistan voi suodattaa maun perusteella, ja suodatusta voi käyttää yhdessä haun kanssa.
+- Reseptilistan kohdasta **Advanced filters** voi lisäksi suodattaa ruokavalion, aterian ja erityisruokavalioiden perusteella. Kaikki ehdot ovat voimassa yhtä aikaa, ja jos erityisruokavalioita valitaan useita, reseptissä on oltava ne kaikki. Valitut suodattimet näkyvät osoitteessa, joten suodatetun listan voi jakaa linkkinä, ja ne säilyvät sivulta toiselle siirryttäessä.
 - Etusivun pikselitaidekissa ehdottaa satunnaisen reseptin käyttäjän valitseman maun perusteella.
 - Reseptilista on sivutettu: sivulla näytetään 10 reseptiä. Sivutus toimii myös haun ja maun suodatuksen kanssa.
 
@@ -46,7 +47,6 @@ Vapaaehtoisia luokitteluja voi muuttaa tai poistaa reseptiä muokattaessa. Maku 
 
 Nämä ominaisuudet eivät ole vielä valmiita:
 
-- Reseptilistan suodatus ruokavalion, aterian ja erityisruokavalion perusteella.
 - Reseptikuvat.
 
 ## Sovelluksen käynnistäminen
@@ -140,6 +140,8 @@ Juuri luodussa tietokannassa ei ole käyttäjiä eikä reseptejä. Siksi testaus
 4. Avaa sivu **Recipes**. Siinä näkyvät kaikkien käyttäjien reseptit, niiden maku, lisääjä ja lisäyspäivä.
 5. Kirjoita hakukenttään sana, joka esiintyy reseptin nimessä tai aineksissa, ja paina **Search**. **Clear** tyhjentää haun.
 6. Suodata reseptejä painikkeilla **Sweet**, **Savory** ja **All recipes**. Suodatus toimii myös yhdessä haun kanssa.
+
+   Avaa hakukentän alta **Advanced filters**, valitse esimerkiksi ruokavalio **Keto** ja erityisruokavaliot **Dairy-free** ja **Nut-free** ja paina **Apply filters**. Listalla näkyvät vain reseptit, joissa on kaikki valitut ominaisuudet, ja valinnat jäävät näkyviin. Kun reseptejä on yli 10, sivulta toiselle siirtyminen säilyttää suodattimet. **Reset filters** poistaa lisäsuodattimet mutta säilyttää haun ja maun. Etusivun kissa ei käytä näitä suodattimia.
 7. Palaa etusivulle (**Home**) ja valitse **Sweet** tai **Savory**. Kissa ehdottaa satunnaista reseptiä, ja **Show me another** pyytää uuden ehdotuksen.
 8. Avaa ensimmäinen resepti ja valitse **Edit**. Aiemmat luokittelut ovat valmiiksi valittuina. Vaihda ateria, poista ruokavalio valitsemalla **Not specified** ja poista yksi erityisruokavalio. Tallenna ja tarkista muutokset reseptin sivulta.
 9. Avaa toinen resepti ja valitse **Delete**. Poisto pyytää vielä vahvistuksen.
@@ -236,4 +238,3 @@ Mitattu suurella tietokannalla indeksin kanssa, sivunlatauksen mediaani 100 mitt
 
 - Sovellus on vielä kehitysvaiheessa.
 - Reseptikuvia ei vielä voi lisätä.
-- Reseptilistan voi suodattaa vain maun perusteella. Muut luokittelut näkyvät reseptin sivulla, mutta niillä ei voi vielä suodattaa.
